@@ -1,3 +1,11 @@
 <svg>
-  <rect id="background" />
+    <rect id="background" fill="black" />
+    <circle cx="30%" cy="35%" r="20%" fill="white" />
+    <text id="big-num" x="30%" y="35%" fill="red" font-size="200%" text-anchor="middle">0</text>
+
+    <circle cx="15%" cy="80%" r="10%" fill="white" />
+    <text id="left-small-num" x="15%" y="80%" fill="red" font-size="150%" text-anchor="middle">0</text>
+
+    <circle cx="40%" cy="80%" r="10%" fill="white" />
+    <text id="right-small-num" x="40%" y="80%" fill="red" font-size="150%" text-anchor="middle">0</text>
 </svg>
