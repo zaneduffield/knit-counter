@@ -13,7 +13,7 @@ function Colors(props: SettingsComponentProps) {
           type="number"
         />
       </Section>
-      <Section
+      {/* <Section
         title={<Text bold align="center">Color Settings</Text>}
       >
         <Text>Text Colour</Text>
@@ -64,7 +64,7 @@ function Colors(props: SettingsComponentProps) {
             { color: 'plum' }
           ]}
         />
-      </Section>
+      </Section> */}
     </Page>
   );
 }
