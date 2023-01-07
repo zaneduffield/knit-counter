@@ -50,10 +50,10 @@ function refresh() {
 function init() {
     console.log("initialising")
 
-    if (existsSync(SETTINGS_FNAME)) {
-        loadSettings()
+    if (!existsSync(SETTINGS_FNAME)) {
+        saveSettings()
     }
-    updateDisplay()
+    refresh()
 
     plusButton.onclick = (e) => {
         project.globalCount += 1
@@ -71,7 +71,7 @@ var repeatProgressElm = document.getElementById("repeat-progress-count")
 var repeatCountElm = document.getElementById("repeat-count")
 
 function updateDisplay() {
-    console.log("updating display")
+    console.log(`updating display with global count ${project.globalCount} and repeat length ${project.repeatLength}`)
     globalCounterElm.text = project.globalCount.toString()
     if (project.repeatLength > 0) {
         repeatProgressElm.text = `${1 + (project.globalCount % project.repeatLength)}/${project.repeatLength}`
@@ -96,25 +96,22 @@ messaging.peerSocket.addEventListener("message", (evt) => {
     if (evt && evt.data) {
         var key = evt.data.key
         var value = evt.data.value
-        console.log(`recieved data over socket: key='${key}', value='${value}'`)
+        console.log(`recieved data over socket: key='${key}', value='${JSON.stringify(value)}'`)
 
         if (key === "repeatLength") {
             console.log(`repeat length updated to ${value.name}`)
             project.repeatLength = value.name
-            updateDisplay()
         } else if (key === "textColour") {
             project.textColour = value
-            updateDisplay()
         } else if (key === "circleColour") {
             project.circleColour = value
-            updateDisplay()
         } else if (key === "buttonMainColour") {
             project.buttonMainColour = value
-            updateDisplay()
         } else if (key === "buttonSecondaryColour") {
             project.buttonSecondaryColour = value
-            updateDisplay()
         }
+        updateDisplay()
+        saveSettings()
     }
 });
 
