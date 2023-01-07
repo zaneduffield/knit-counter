@@ -7,6 +7,11 @@ interface Project {
     name: string;
     globalCount: number;
     repeatLength: number | null;
+
+    circleColour?: string;
+    textColour?: string;
+    buttonMainColour?: string;
+    buttonSecondaryColour?: string;
 }
 
 interface Settings {
@@ -97,6 +102,21 @@ messaging.peerSocket.addEventListener("message", (evt) => {
             console.log(`repeat length updated to ${value.name}`)
             project.repeatLength = value.name
             updateDisplay()
+        } else if (key === "textColour") {
+            project.textColour = value
+            updateDisplay()
+        } else if (key === "circleColour") {
+            project.circleColour = value
+            updateDisplay()
+        } else if (key === "buttonMainColour") {
+            project.buttonMainColour = value
+            updateDisplay()
+        } else if (key === "buttonSecondaryColour") {
+            project.buttonSecondaryColour = value
+            updateDisplay()
         }
     }
 });
+
+
+
