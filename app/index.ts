@@ -1,4 +1,5 @@
 import document from "document";
+import { display } from "display";
 import * as messaging from "messaging";
 import { readFileSync, writeFileSync, existsSync, unlinkSync } from "fs";
 
@@ -25,40 +26,46 @@ const SETTINGS_FNAME = "settings.json"
 var plusButton = document.getElementById("plus-button")
 var subButton = document.getElementById("sub-button")
 
-function init() {
-    console.log("in init")
+function saveSettings() {
+    console.log("writing settings file")
+    writeFileSync(SETTINGS_FNAME, settings, "json");
+}
 
-    // TODO save settings on display sleep and remove the unlink on startup
-    unlinkSync(SETTINGS_FNAME)
+function loadSettings() {
+    console.log("reading settings file")
+    settings = readFileSync(SETTINGS_FNAME, "json")
+    project = settings.projects.filter(p => p.name == settings.selectedProjName)[0]
+}
+
+function refresh() {
+    loadSettings()
+    updateDisplay()
+}
+
+function init() {
+    console.log("initialising")
 
     if (existsSync(SETTINGS_FNAME)) {
-        console.log("reading settings file")
-        settings = readFileSync(SETTINGS_FNAME, "json")
-    } else {
-        console.log("writing settings file")
-        writeFileSync(SETTINGS_FNAME, JSON.stringify(settings), "json");
+        loadSettings()
     }
-
-    project = settings.projects.filter(p => p.name == settings.selectedProjName)[0]
+    updateDisplay()
 
     plusButton.onclick = (e) => {
         project.globalCount += 1
-        display()
+        updateDisplay()
     }
 
     subButton.onclick = (e) => {
         project.globalCount -= 1
-        display()
+        updateDisplay()
     }
-
-    display()
 }
 
 var globalCounterElm = document.getElementById("global-count")
 var repeatProgressElm = document.getElementById("repeat-progress-count")
 var repeatCountElm = document.getElementById("repeat-count")
 
-function display() {
+function updateDisplay() {
     console.log("updating display")
     globalCounterElm.text = project.globalCount.toString()
     if (project.repeatLength > 0) {
@@ -70,8 +77,15 @@ function display() {
     }
 }
 
-
 init()
+
+display.addEventListener("change", () => {
+    if (display.on) {
+        refresh()
+    } else {
+        saveSettings()
+    }
+});
 
 messaging.peerSocket.addEventListener("message", (evt) => {
     if (evt && evt.data && evt.data.key === "...") {

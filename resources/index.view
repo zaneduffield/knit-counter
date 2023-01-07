@@ -1,12 +1,18 @@
 <svg>
-    <circle cx="30%" cy="30%" r="22%" class="counter-bubble" />
-    <text id="repeat-progress-count" x="30%" y="30%" font-size="200%" text-anchor="middle" class="counter-text" />
+    <g transform="translate(30%, 30%)">
+        <circle r="22%" class="counter-bubble" />
+        <text id="repeat-progress-count" font-size="30" class="counter-text" />
+    </g>
 
-    <circle cx="85%" cy="20%" r="12%" class="counter-bubble" />
-    <text id="global-count" x="85%" y="20%" font-size="150%" text-anchor="middle" class="counter-text" />
+    <g transform="translate(85%, 20%)">
+        <circle r="12%" class="counter-bubble" />
+        <text id="global-count" font-size="30" class="counter-text" />
+    </g>
 
-    <circle cx="50%" cy="60%" r="10%" class="counter-bubble" />
-    <text id="repeat-count" x="50%" y="60%" font-size="150%" text-anchor="middle" class="counter-text" />
+    <g transform="translate(50%, 60%)">
+        <circle r="8%" class="counter-bubble" />
+        <text id="repeat-count" font-size="30" class="counter-text" />
+    </g>
 
     <use id="sub-button" href="#text-button" class="text-button bottom left secondary application-fill" />
     <use id="plus-button" href="#text-button" class="text-button bottom right application-fill" />

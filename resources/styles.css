@@ -5,13 +5,31 @@
   text-length: 32;
 }
 
-.application-fill           { fill: fb-green; }
-.foreground-fill            { fill: fb-white; }
-.background-fill            { fill: fb-black; }
+.application-fill {
+  fill: fb-green;
+}
 
-.counter-text { fill: fb-green; }
+.foreground-fill {
+  fill: fb-white;
+}
 
-.counter-bubble { fill: fb-white; }
+.background-fill {
+  fill: fb-black;
+}
+
+text {
+  fill: fb-green;
+  text-anchor: middle;
+
+  x: "0";
+
+  /* the fitbit doesn't support "dominant-baseline: center" so we have to resort to more hacky methods */
+  y: "12";
+}
+
+.counter-bubble {
+  fill: fb-white;
+}
 
 #sub-button #text {
   text-buffer: "-";
