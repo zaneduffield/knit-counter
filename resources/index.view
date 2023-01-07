@@ -1,16 +1,19 @@
 <svg>
     <g transform="translate(30%, 30%)">
-        <circle r="22%" class="counter-bubble" />
+        <circle id="outline-repeat-progress-bubble" r="28%" class="outline-bubble" />
+        <circle id="repeat-progress-bubble" r="26%" class="counter-bubble clickable" />
         <text id="repeat-progress-count" font-size="30" class="counter-text" />
     </g>
 
-    <g transform="translate(85%, 20%)">
-        <circle r="12%" class="counter-bubble" />
+    <g transform="translate(75%, 25%)">
+        <circle id="outline-global-bubble" r="16%" class="outline-bubble" />
+        <circle id="global-bubble" r="14%" class="counter-bubble clickable" />
         <text id="global-count" font-size="30" class="counter-text" />
     </g>
 
     <g transform="translate(50%, 60%)">
-        <circle r="8%" class="counter-bubble" />
+        <circle id="outline-repeat-bubble" r="10%" class="outline-bubble" />
+        <circle id="repeat-bubble" r="8%" class="counter-bubble clickable" />
         <text id="repeat-count" font-size="30" class="counter-text" />
     </g>
 

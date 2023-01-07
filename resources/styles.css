@@ -18,6 +18,7 @@
 }
 
 text {
+  pointer-events: none;
   fill: fb-green;
   text-anchor: middle;
 
@@ -27,8 +28,18 @@ text {
   y: "12";
 }
 
+.clickable {
+  pointer-events: "visible"
+}
+
 .counter-bubble {
   fill: fb-white;
+}
+
+/* TODO add z-index properties to everything rather than relying on implicit order */
+.outline-bubble {
+  fill: fb-green;
+  visibility: hidden;
 }
 
 #sub-button #text {
