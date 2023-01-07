@@ -2,6 +2,7 @@ import document from "document";
 import { display } from "display";
 import * as messaging from "messaging";
 import { readFileSync, writeFileSync, existsSync, unlinkSync } from "fs";
+import { isSettingsMessage, SettingMessage } from "../common/messages"
 
 interface Project {
     name: string;
@@ -64,6 +65,16 @@ function init() {
         project.globalCount = Math.max(project.globalCount - 1, 0)
         updateDisplay()
     }
+
+    messaging.peerSocket.addEventListener("message", receiveMessage);
+
+    display.addEventListener("change", () => {
+        if (display.on) {
+            refresh()
+        } else {
+            saveSettings()
+        }
+    });
 }
 
 var globalCounterElm = document.getElementById("global-count")
@@ -82,38 +93,41 @@ function updateDisplay() {
     }
 }
 
-init()
+function receiveSettingsMessage(obj: SettingMessage) {
+    var key = obj.key
+    var value = obj.value
+    console.log(`recieved data over socket: key='${key}', value='${JSON.stringify(value)}'`)
 
-display.addEventListener("change", () => {
-    if (display.on) {
-        refresh()
-    } else {
-        saveSettings()
+    if (key === "repeatLength") {
+        console.log(`repeat length updated to ${value.name}`)
+        project.repeatLength = value.name
+    } else if (key === "textColour") {
+        project.textColour = value
+    } else if (key === "circleColour") {
+        project.circleColour = value
+    } else if (key === "buttonMainColour") {
+        project.buttonMainColour = value
+    } else if (key === "buttonSecondaryColour") {
+        project.buttonSecondaryColour = value
     }
-});
+}
 
-messaging.peerSocket.addEventListener("message", (evt) => {
+function receiveMessageItem(o) {
+    if (isSettingsMessage(o)) {
+        receiveSettingsMessage(o)
+    }
+}
+
+function receiveMessage(evt: messaging.MessageEvent) {
     if (evt && evt.data) {
-        var key = evt.data.key
-        var value = evt.data.value
-        console.log(`recieved data over socket: key='${key}', value='${JSON.stringify(value)}'`)
-
-        if (key === "repeatLength") {
-            console.log(`repeat length updated to ${value.name}`)
-            project.repeatLength = value.name
-        } else if (key === "textColour") {
-            project.textColour = value
-        } else if (key === "circleColour") {
-            project.circleColour = value
-        } else if (key === "buttonMainColour") {
-            project.buttonMainColour = value
-        } else if (key === "buttonSecondaryColour") {
-            project.buttonSecondaryColour = value
+        if (evt.data instanceof Array) {
+            evt.data.forEach(receiveMessageItem)
+        } else if (evt.data instanceof Object) {
+            receiveMessageItem(evt.data)
         }
         updateDisplay()
         saveSettings()
     }
-});
+}
 
-
-
+init()
