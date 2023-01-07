@@ -93,23 +93,12 @@ function init() {
   }
   refresh();
 
-  plusButton.onclick = increment(1);
-  subButton.onclick = increment(-1);
+  plusButton.onclick = incrementEvent(1);
+  subButton.onclick = incrementEvent(-1);
 
-  globalBubbleElm.onclick = (e) => {
-    project.selectedBubble = Bubble.Global;
-    updateDisplay();
-  };
-
-  repeatCountBubbleElm.onclick = (e) => {
-    project.selectedBubble = Bubble.RepeatCount;
-    updateDisplay();
-  };
-
-  repeatProgressBubbleElm.onclick = (e) => {
-    project.selectedBubble = Bubble.RepeatProgress;
-    updateDisplay();
-  };
+  globalBubbleElm.onclick = () => selectBubble(Bubble.Global);
+  repeatCountBubbleElm.onclick = () => selectBubble(Bubble.RepeatCount);
+  repeatProgressBubbleElm.onclick = () => selectBubble(Bubble.RepeatProgress);
 
   messaging.peerSocket.addEventListener("message", receiveMessage);
 
@@ -121,9 +110,12 @@ function init() {
     }
   });
 
-  appbit.onunload = (e) => {
-    saveSettings();
-  };
+  appbit.onunload = () => saveSettings();
+}
+
+function selectBubble(b: Bubble) {
+  project.selectedBubble = b;
+  updateDisplay();
 }
 
 function incRepeatCount(i: number) {
@@ -134,8 +126,8 @@ function incRepeatCount(i: number) {
   }
 }
 
-function increment(i: number): (e: MouseEvent) => void {
-  return (e) => {
+function incrementEvent(i: number): (e: MouseEvent) => void {
+  return () => {
     if (project.selectedBubble === Bubble.Global) {
       project.globalCount = Math.max(project.globalCount + i, 0);
       incRepeatCount(i);
