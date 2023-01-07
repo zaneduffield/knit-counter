@@ -2,7 +2,7 @@ import document from "document";
 import { display } from "display";
 import * as messaging from "messaging";
 import { readFileSync, writeFileSync, existsSync, unlinkSync } from "fs";
-import { isSettingsMessage, SettingMessage } from "../common/messages";
+import { isProjectOperation, isSettingsMessage, Operation, ProjectOperation, SettingMessage } from "../common/messages";
 import { me as appbit } from "appbit";
 
 interface Project {
@@ -20,7 +20,7 @@ interface Project {
 
 function zeroProject(name: string): Project {
   return {
-    name: "my project",
+    name: name,
     repeatLength: 0,
     globalCount: 0,
     repeatCount: 0,
@@ -70,12 +70,16 @@ function saveSettings() {
   writeFileSync(SETTINGS_FNAME, settings, "json");
 }
 
+function findProject(name: string): Project {
+  return settings.projects.filter(
+    (p) => p.name == name
+  )[0];
+}
+
 function loadSettings() {
   console.log("reading settings file");
   settings = readFileSync(SETTINGS_FNAME, "json");
-  project = settings.projects.filter(
-    (p) => p.name == settings.selectedProjName
-  )[0];
+  project = findProject(settings.selectedProjName)
 }
 
 function refresh() {
@@ -194,9 +198,22 @@ function receiveSettingsMessage(obj: SettingMessage) {
   }
 }
 
+function receiveProjectOperation(op: ProjectOperation) {
+    var projName = op.project ?? project.name
+    var proj = findProject(projName)
+    if (op.operation === Operation.Reset) {
+        console.log(`resetting counters for project ${projName} to zero`)
+        proj.globalCount = 0
+        proj.repeatCount = 0
+    }
+}
+
+// need to generalise this to work with the entire settings object
 function receiveMessageItem(o) {
   if (isSettingsMessage(o)) {
     receiveSettingsMessage(o);
+  } else if (isProjectOperation(o)) {
+    receiveProjectOperation(o)
   }
 }
 

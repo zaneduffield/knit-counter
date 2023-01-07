@@ -1,7 +1,8 @@
 export interface ProjectConfig {
+    needsReset: boolean,
     repeatLength: number,
 }
 
 export interface ProjectSettings {
-  arrayVal: Map<String, ProjectConfig>;
+  projectsByName: Map<String, ProjectConfig>;
 }

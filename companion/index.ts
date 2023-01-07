@@ -1,11 +1,12 @@
 import { settingsStorage } from "settings";
 import * as messaging from "messaging";
 import { me as companion } from "companion";
-import { SettingMessage } from "../common/messages"
+import { Operation, SettingMessage } from "../common/messages"
 
 // Settings have been changed
 settingsStorage.addEventListener("change", (evt) => {
-  sendSettingData(keyValuePair(evt.key, evt.newValue));
+  console.log(`key: ${evt.key}, value: ${evt.newValue}`)
+  sendData(keyValuePair(evt.key, evt.newValue));
 });
 
 // Settings were changed while the companion was not running
@@ -18,7 +19,7 @@ if (companion.launchReasons.settingsChanged) {
     data.push(keyValuePair(key, value))
   }
 
-  sendSettingData(data);
+  sendData(data);
 }
 
 function keyValuePair(key, val): SettingMessage {
@@ -28,11 +29,15 @@ function keyValuePair(key, val): SettingMessage {
   }
 }
 
-function sendSettingData(data: SettingMessage | SettingMessage[]) {
+function sendReset() {
+  sendData({project: null, operation: Operation.Reset})
+}
+
+function sendData(data: any) {
   // If we have a MessageSocket, send the data to the device
   if (messaging.peerSocket.readyState === messaging.peerSocket.OPEN) {
     messaging.peerSocket.send(data);
   } else {
-    console.log("No peerSocket connection");
+    console.error("No peerSocket connection");
   }
 }
