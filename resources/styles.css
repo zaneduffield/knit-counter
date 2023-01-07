@@ -42,6 +42,10 @@ text {
   visibility: hidden;
 }
 
+.text-button #text {
+  font-size: 50;
+}
+
 #sub-button #text {
   text-buffer: "-";
 }
