@@ -3,6 +3,7 @@ import { display } from "display";
 import * as messaging from "messaging";
 import { readFileSync, writeFileSync, existsSync, unlinkSync } from "fs";
 import { isSettingsMessage, SettingMessage } from "../common/messages"
+import { me as appbit } from "appbit";
 
 interface Project {
     name: string;
@@ -80,6 +81,8 @@ function refresh() {
 function init() {
     console.log("initialising")
 
+    appbit.appTimeoutEnabled = false
+
     if (!existsSync(SETTINGS_FNAME)) {
         saveSettings()
     }
@@ -112,6 +115,10 @@ function init() {
             saveSettings()
         }
     });
+
+    appbit.onunload = (e) => {
+        saveSettings()
+    }
 }
 
 function incRepeatCount(i: number) {
