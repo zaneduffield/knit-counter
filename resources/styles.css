@@ -5,8 +5,18 @@
   text-length: 32;
 }
 
-#background {
-  width: 100%;
-  height: 100%;
-  fill: white;
+.application-fill           { fill: fb-green; }
+.foreground-fill            { fill: fb-white; }
+.background-fill            { fill: fb-black; }
+
+.counter-text { fill: fb-green; }
+
+.counter-bubble { fill: fb-white; }
+
+#sub-button #text {
+  text-buffer: "-";
+}
+
+#plus-button #text {
+  text-buffer: "+";
 }

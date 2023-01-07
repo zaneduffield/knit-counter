@@ -25,5 +25,8 @@
   "scripts": {
     "build": "fitbit-build",
     "debug": "fitbit"
+  },
+  "dependencies": {
+    "fitbit-settings-commons": "^2.0.6"
   }
 }
