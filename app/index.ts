@@ -61,7 +61,7 @@ function init() {
     }
 
     subButton.onclick = (e) => {
-        project.globalCount -= 1
+        project.globalCount = Math.max(project.globalCount - 1, 0)
         updateDisplay()
     }
 }
