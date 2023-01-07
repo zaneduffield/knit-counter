@@ -5,17 +5,12 @@ function Colors(props: SettingsComponentProps) {
   return (
     <Page>
       <Section
-        title={<Text bold align="center">Color Settings</Text>}>
-        <ColorSelect
-          settingsKey="myColor"
-          colors={[
-            {color: 'tomato'},
-            {color: 'sandybrown'},
-            {color: 'gold'},
-            {color: 'aquamarine'},
-            {color: 'deepskyblue'},
-            {color: 'plum'}
-          ]}
+        title={<Text bold align="center">Repeat Settings</Text>}
+      >
+        <TextInput
+          label="repeat length"
+          settingsKey="repeatLength"
+          type="number"
         />
       </Section>
     </Page>

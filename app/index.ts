@@ -88,7 +88,15 @@ display.addEventListener("change", () => {
 });
 
 messaging.peerSocket.addEventListener("message", (evt) => {
-    if (evt && evt.data && evt.data.key === "...") {
-        // background.style.fill = evt.data.value;
+    if (evt && evt.data) {
+        var key = evt.data.key
+        var value = evt.data.value
+        console.log(`recieved data over socket: key='${key}', value='${value}'`)
+
+        if (key === "repeatLength") {
+            console.log(`repeat length updated to ${value.name}`)
+            project.repeatLength = value.name
+            updateDisplay()
+        }
     }
 });
