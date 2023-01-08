@@ -21,7 +21,9 @@ text {
   pointer-events: none;
   fill: fb-green;
   text-anchor: middle;
+}
 
+.counter-text {
   x: 0;
 
   /* the fitbit doesn't support "dominant-baseline: center" so we have to resort to more hacky methods */

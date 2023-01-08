@@ -2,7 +2,13 @@ import document from "document";
 import { display } from "display";
 import * as messaging from "messaging";
 import { readFileSync, writeFileSync, existsSync, unlinkSync } from "fs";
-import { isProjectOperation, isSettingsMessage, Operation, ProjectOperation, SettingMessage } from "../common/messages";
+import {
+  isProjectOperation,
+  isSettingsMessage,
+  Operation,
+  ProjectOperation,
+  SettingMessage,
+} from "../common/messages";
 import { me as appbit } from "appbit";
 
 interface Project {
@@ -18,10 +24,10 @@ interface Project {
   buttonSecondaryColour?: string;
 }
 
-function zeroProject(name: string): Project {
+function initProject(name: string): Project {
   return {
     name: name,
-    repeatLength: 0,
+    repeatLength: 10,
     globalCount: 0,
     repeatCount: 0,
     selectedBubble: Bubble.Global,
@@ -35,18 +41,23 @@ enum Bubble {
 }
 
 interface Settings {
+  projIdx: number;
   selectedProjName: string;
   projects: Project[];
 }
 
 var settings: Settings = {
+  projIdx: 0,
   selectedProjName: "my project",
-  projects: [zeroProject("my project")],
+  projects: [initProject("my project")],
 };
 
 var project: Project;
 
 const SETTINGS_FNAME = "settings.json";
+
+var background = document.getElementById("background")
+var projectId = document.getElementById("project-id")
 
 var plusButton = document.getElementById("plus-button");
 var subButton = document.getElementById("sub-button");
@@ -70,22 +81,41 @@ function saveSettings() {
   writeFileSync(SETTINGS_FNAME, settings, "json");
 }
 
-function findProject(name: string): Project {
-  return settings.projects.filter(
-    (p) => p.name == name
-  )[0];
+function getProject(): Project {
+  return settings.projects[settings.projIdx]
 }
 
 function loadSettings() {
   console.log("reading settings file");
   settings = readFileSync(SETTINGS_FNAME, "json");
-  project = findProject(settings.selectedProjName)
+  project = getProject()
 }
 
 function refresh() {
   loadSettings();
-  updateDisplay();
+  redraw();
 }
+
+function nextProject() {
+  console.log("loading next project")
+  settings.projIdx += 1
+  while (settings.projIdx >= settings.projects.length) {
+    console.log("creating new project")
+    settings.projects.push(initProject("new"))
+  }
+  project = getProject()
+  redraw()
+}
+
+function prevProject() {
+  console.log("loading previous project")
+  settings.projIdx = Math.max(settings.projIdx - 1, 0)
+  project = getProject()
+  redraw()
+}
+
+var y = 0;
+var x = 0;
 
 function init() {
   console.log("initialising");
@@ -114,12 +144,40 @@ function init() {
     }
   });
 
+  background.onmousedown = (e) => {
+    console.log("mouse down")
+    x = e.screenX;
+    y = e.screenY;
+  };
+
+  background.onmouseup = (e) => {
+    console.log("mouse up")
+    let xMove = e.screenX - x;
+    let yMove = e.screenY - y;
+
+    if (yMove < -60) {
+      /* swipe up */
+      console.log("swipe up")
+    } else if (yMove > 60) {
+      /* swipe down */
+      console.log("swipe down")
+    } else if (xMove < -60) {
+      /* swipe left */
+      console.log("swipe left")
+      nextProject()
+    } else if (xMove > 60) {
+      /* swipe right */
+      console.log("swipe right")
+      prevProject()
+    }
+  };
+
   appbit.onunload = () => saveSettings();
 }
 
 function selectBubble(b: Bubble) {
   project.selectedBubble = b;
-  updateDisplay();
+  redraw();
 }
 
 function incRepeatCount(i: number) {
@@ -140,11 +198,11 @@ function incrementEvent(i: number): (e: MouseEvent) => void {
     } else if (project.selectedBubble === Bubble.RepeatCount) {
       incRepeatCount(i * project.repeatLength);
     }
-    updateDisplay();
+    redraw();
   };
 }
 
-function updateDisplay() {
+function redraw() {
   console.log(
     `updating display with global count ${project.globalCount} and repeat length ${project.repeatLength}`
   );
@@ -160,6 +218,8 @@ function updateDisplay() {
     repeatProgressElm.text = "";
     repeatCountElm.text = "";
   }
+
+  projectId.text = (1 + settings.projIdx).toString()
 
   globalOutlineElm.style.visibility = "hidden";
   repeatCountOutlineElm.style.visibility = "hidden";
@@ -199,13 +259,13 @@ function receiveSettingsMessage(obj: SettingMessage) {
 }
 
 function receiveProjectOperation(op: ProjectOperation) {
-    var projName = op.project ?? project.name
-    var proj = findProject(projName)
-    if (op.operation === Operation.Reset) {
-        console.log(`resetting counters for project ${projName} to zero`)
-        proj.globalCount = 0
-        proj.repeatCount = 0
-    }
+  // var projName = op.project ?? project.name;
+  // var proj = findProject(projName);
+  // if (op.operation === Operation.Reset) {
+  //   console.log(`resetting counters for project ${projName} to zero`);
+  //   proj.globalCount = 0;
+  //   proj.repeatCount = 0;
+  // }
 }
 
 // need to generalise this to work with the entire settings object
@@ -213,7 +273,7 @@ function receiveMessageItem(o) {
   if (isSettingsMessage(o)) {
     receiveSettingsMessage(o);
   } else if (isProjectOperation(o)) {
-    receiveProjectOperation(o)
+    receiveProjectOperation(o);
   }
 }
 
@@ -224,9 +284,12 @@ function receiveMessage(evt: messaging.MessageEvent) {
     } else if (evt.data instanceof Object) {
       receiveMessageItem(evt.data);
     }
-    updateDisplay();
+    redraw();
     saveSettings();
   }
 }
+
+// export default () => {
+// };
 
 init();
