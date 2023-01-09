@@ -4,5 +4,10 @@ export interface ProjectConfig {
 }
 
 export interface ProjectSettings {
-  projectsByName: Map<String, ProjectConfig>;
+  numProjects: number;
+  projects: ProjectConfig[];
+}
+
+export function defaultProject(): ProjectConfig {
+  return { needsReset: false, repeatLength: 10}
 }

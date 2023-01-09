@@ -1,4 +1,4 @@
-import { ProjectSettings } from "../common/settingsTypes";
+import { ProjectSettings, defaultProject } from "../common/settingsTypes";
 import {
   TypedSettingProps,
   ASIS,
@@ -8,30 +8,70 @@ import {
 function Colors(props: SettingsComponentProps) {
   const typedSetting: TypedSettingProps<ProjectSettings> =
     new TypedSettingProps(props, {
-      projectsByName: {
+      projects: {
         unpackInitiator: (v) =>
           v === undefined
-            ? new Map([["my project", { needsReset: false, repeatLength: 0 }]])
+            ? [...Array(10)].map(() => defaultProject())
             : JSON.parse(v),
       },
+      numProjects: {
+        unpackInitiator: (v) => (v === undefined ? 10 : JSON.parse(v)),
+      },
     });
+
+  while (typedSetting.get().numProjects >= typedSetting.get().projects.length) {
+    typedSetting.get().projects.push(defaultProject());
+  }
 
   return (
     <Page>
       <Section
         title={
           <Text bold align="center">
-            Repeat Settings
+            Global Settings
           </Text>
         }
       >
         <TextInput
-          label="Repeat Length"
-          settingsKey="repeatLength"
+          label="Number of Projects"
+          // settingsKey="numProjects"
+          value={`${typedSetting.get().numProjects}`}
+          onChange={(v) => {
+            // @ts-ignore; I don't know why the value passed here is actually an Object and not a string.
+            typedSetting.update({ numProjects: parseInt(v.name) });
+          }}
           type="number"
         />
-
       </Section>
+
+      {[...Array(typedSetting.get().numProjects)].map((_, i) => {
+        console.log(
+          `repeatLength: ${typedSetting.get().projects[i].repeatLength}`
+        );
+
+        return (
+          <Section
+            title={
+              <Text bold align="center">
+                Project {i}
+              </Text>
+            }
+          >
+            <TextInput
+              label="Repeat Length"
+              value={`${typedSetting.get().projects[i].repeatLength}`}
+              onChange={(v) => {
+                typedSetting.getToUpdate().projects[i].repeatLength = parseInt(
+                  // @ts-ignore; I don't know why the value passed here is actually an Object and not a string.
+                  v.name
+                );
+                typedSetting.commit();
+              }}
+              type="number"
+            />
+          </Section>
+        );
+      })}
     </Page>
   );
 }
