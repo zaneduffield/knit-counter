@@ -27,7 +27,7 @@ interface Project {
 function initProject(name: string): Project {
   return {
     name: name,
-    repeatLength: 10,
+    repeatLength: 8,
     globalCount: 0,
     repeatCount: 0,
     selectedBubble: Bubble.Global,
@@ -56,25 +56,23 @@ var project: Project;
 
 const SETTINGS_FNAME = "settings.json";
 
-var background = document.getElementById("background")
-var projectId = document.getElementById("project-id")
+var background: Element;
+var projectId: Element;
 
-var plusButton = document.getElementById("plus-button");
-var subButton = document.getElementById("sub-button");
+var plusButton: Element;
+var subButton: Element;
 
-var globalCounterElm = document.getElementById("global-count");
-var repeatProgressElm = document.getElementById("repeat-progress-count");
-var repeatCountElm = document.getElementById("repeat-count");
+var globalCounterElm: Element;
+var repeatProgressElm: Element;
+var repeatCountElm: Element;
 
-var globalBubbleElm = document.getElementById("global-bubble");
-var repeatProgressBubbleElm = document.getElementById("repeat-progress-bubble");
-var repeatCountBubbleElm = document.getElementById("repeat-bubble");
+var globalBubbleElm: Element;
+var repeatProgressBubbleElm: Element;
+var repeatCountBubbleElm: Element;
 
-var globalOutlineElm = document.getElementById("outline-global-bubble");
-var repeatProgressOutlineElm = document.getElementById(
-  "outline-repeat-progress-bubble"
-);
-var repeatCountOutlineElm = document.getElementById("outline-repeat-bubble");
+var globalOutlineElm: Element;
+var repeatProgressOutlineElm: Element;
+var repeatCountOutlineElm: Element;
 
 function saveSettings() {
   console.log("writing settings file");
@@ -82,13 +80,13 @@ function saveSettings() {
 }
 
 function getProject(): Project {
-  return settings.projects[settings.projIdx]
+  return settings.projects[settings.projIdx];
 }
 
 function loadSettings() {
   console.log("reading settings file");
   settings = readFileSync(SETTINGS_FNAME, "json");
-  project = getProject()
+  project = getProject();
 }
 
 function refresh() {
@@ -96,22 +94,12 @@ function refresh() {
   redraw();
 }
 
-function nextProject() {
-  console.log("loading next project")
-  settings.projIdx += 1
-  while (settings.projIdx >= settings.projects.length) {
-    console.log("creating new project")
-    settings.projects.push(initProject("new"))
+function setProjectIdx(i: number) {
+  while (i >= settings.projects.length) {
+    settings.projects.push(initProject(`Project ${i}`));
   }
-  project = getProject()
-  redraw()
-}
-
-function prevProject() {
-  console.log("loading previous project")
-  settings.projIdx = Math.max(settings.projIdx - 1, 0)
-  project = getProject()
-  redraw()
+  settings.projIdx = i;
+  project = getProject();
 }
 
 var y = 0;
@@ -125,14 +113,7 @@ function init() {
   if (!existsSync(SETTINGS_FNAME)) {
     saveSettings();
   }
-  refresh();
-
-  plusButton.onclick = incrementEvent(1);
-  subButton.onclick = incrementEvent(-1);
-
-  globalBubbleElm.onclick = () => selectBubble(Bubble.Global);
-  repeatCountBubbleElm.onclick = () => selectBubble(Bubble.RepeatCount);
-  repeatProgressBubbleElm.onclick = () => selectBubble(Bubble.RepeatProgress);
+  loadProject(0);
 
   messaging.peerSocket.addEventListener("message", receiveMessage);
 
@@ -144,35 +125,80 @@ function init() {
     }
   });
 
+  appbit.onunload = () => saveSettings();
+}
+
+async function loadProject(i: number) {
+  await document.location.replace("./resources/index.view");
+  setProjectIdx(i);
+
+  background = document.getElementById("background");
+  projectId = document.getElementById("project-id");
+
+  plusButton = document.getElementById("plus-button");
+  subButton = document.getElementById("sub-button");
+
+  globalCounterElm = document.getElementById("global-count");
+  repeatProgressElm = document.getElementById("repeat-progress-count");
+  repeatCountElm = document.getElementById("repeat-count");
+
+  globalBubbleElm = document.getElementById("global-bubble");
+  repeatProgressBubbleElm = document.getElementById("repeat-progress-bubble");
+  repeatCountBubbleElm = document.getElementById("repeat-bubble");
+
+  globalOutlineElm = document.getElementById("outline-global-bubble");
+  repeatProgressOutlineElm = document.getElementById(
+    "outline-repeat-progress-bubble"
+  );
+  repeatCountOutlineElm = document.getElementById("outline-repeat-bubble");
+
+  plusButton.onclick = incrementEvent(1);
+  subButton.onclick = incrementEvent(-1);
+
+  globalBubbleElm.onclick = () => selectBubble(Bubble.Global);
+  repeatCountBubbleElm.onclick = () => selectBubble(Bubble.RepeatCount);
+  repeatProgressBubbleElm.onclick = () => selectBubble(Bubble.RepeatProgress);
+
   background.onmousedown = (e) => {
-    console.log("mouse down")
+    console.log("mouse down");
     x = e.screenX;
     y = e.screenY;
   };
 
-  background.onmouseup = (e) => {
-    console.log("mouse up")
+  background.onmouseup = async (e) => {
+    console.log("mouse up");
     let xMove = e.screenX - x;
     let yMove = e.screenY - y;
 
     if (yMove < -60) {
       /* swipe up */
-      console.log("swipe up")
+      console.log("swipe up");
     } else if (yMove > 60) {
       /* swipe down */
-      console.log("swipe down")
+      console.log("swipe down");
     } else if (xMove < -60) {
       /* swipe left */
-      console.log("swipe left")
-      nextProject()
+      console.log("swipe left");
+      await loadProjectSelectionView();
     } else if (xMove > 60) {
       /* swipe right */
-      console.log("swipe right")
-      prevProject()
+      console.log("swipe right");
     }
   };
 
-  appbit.onunload = () => saveSettings();
+  redraw();
+}
+
+async function loadProjectSelectionView() {
+  await document.location.replace("./resources/settings/settings.view");
+
+  let list = document.getElementById("myList");
+  let items = list.getElementsByClassName("list-item");
+
+  items.forEach((element, index) => {
+    let touch = element.getElementById("touch");
+    touch.onclick = () => loadProject(index);
+  });
 }
 
 function selectBubble(b: Bubble) {
@@ -206,11 +232,11 @@ function redraw() {
   console.log(
     `updating display with global count ${project.globalCount} and repeat length ${project.repeatLength}`
   );
-  globalCounterElm.text = (1 + project.globalCount).toString();
+  globalCounterElm.text = project.globalCount.toString();
   if (project.repeatLength > 0) {
-    repeatProgressElm.text = `${
-      1 + (project.repeatCount % project.repeatLength)
-    }/${project.repeatLength}`;
+    repeatProgressElm.text = `${project.repeatCount % project.repeatLength}/${
+      project.repeatLength
+    }`;
     repeatCountElm.text = Math.floor(
       project.repeatCount / project.repeatLength
     ).toString();
@@ -219,7 +245,7 @@ function redraw() {
     repeatCountElm.text = "";
   }
 
-  projectId.text = (1 + settings.projIdx).toString()
+  projectId.text = (1 + settings.projIdx).toString();
 
   globalOutlineElm.style.visibility = "hidden";
   repeatCountOutlineElm.style.visibility = "hidden";
