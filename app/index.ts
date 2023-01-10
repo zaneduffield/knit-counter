@@ -113,6 +113,7 @@ function init() {
   if (!existsSync(SETTINGS_FNAME)) {
     saveSettings();
   }
+  loadSettings()
   loadProject(0);
 
   messaging.peerSocket.addEventListener("message", receiveMessage);
