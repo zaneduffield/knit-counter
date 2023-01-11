@@ -113,7 +113,7 @@ function init() {
   if (!existsSync(SETTINGS_FNAME)) {
     saveSettings();
   }
-  loadSettings()
+  loadSettings();
   loadProject(0);
 
   messaging.peerSocket.addEventListener("message", receiveMessage);
@@ -297,11 +297,11 @@ function receiveProjectOperation(op: ProjectOperation) {
 
 // need to generalise this to work with the entire settings object
 function receiveMessageItem(o) {
-  if (isSettingsMessage(o)) {
-    receiveSettingsMessage(o);
-  } else if (isProjectOperation(o)) {
-    receiveProjectOperation(o);
-  }
+  // if (isSettingsMessage(o)) {
+  //   receiveSettingsMessage(o);
+  // } else if (isProjectOperation(o)) {
+  //   receiveProjectOperation(o);
+  // }
 }
 
 function receiveMessage(evt: messaging.MessageEvent) {
