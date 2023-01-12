@@ -4,39 +4,69 @@ export interface ProjectConfig {
   repeatLength: number;
 }
 
-// export enum SettingsPage {
-//   Main,
-//   Add,
-//   Edit,
-//   Delete,
-//   Reorder,
-// }
+export enum SettingsPage {
+  Main,
+  Add,
+  Edit,
+  Delete,
+  Reorder,
+}
 
-export class PageState {}
+export interface SettingsState {
+  currentPage: SettingsPage;
 
-export class MainPageState extends PageState {}
+  mainPageState?: MainPageState;
+  addPageState?: AddPageState;
+  editPageState?: EditPageState;
+  deletePageState?: DeletePageState;
+  reorderPageState?: ReorderPageState;
+}
 
-export class AddPageState extends PageState {
+export class SettingsPageState {}
+
+export class MainPageState extends SettingsPageState {}
+
+export class AddPageState extends SettingsPageState {
   projId: number;
   newProjectConfig: ProjectConfig;
 }
 
-export class EditPageState extends PageState {
+export class EditPageState extends SettingsPageState {
   projId: number;
   newProjectConfig: ProjectConfig;
 }
 
-export class DeletePageState extends PageState {
+export class DeletePageState extends SettingsPageState {
   projId: number;
   needsConfirmation: boolean;
 }
 
-export class ReorderPageState extends PageState {
+export class ReorderPageState extends SettingsPageState {
   // TODO
 }
 
-export interface SettingsState {
-  pageState: PageState;
+export function encodeInstance(s: any): string {
+  return JSON.stringify(s);
+}
+
+export function decodeInstance<T>(o: any, c: new () => T): T {
+  const object = new c();
+  Object.entries(o).map(([key, value]) => (object[key] = value));
+  return object;
+}
+
+export function encodeSettingsState(s: SettingsState): string {
+  return encodeInstance(s);
+}
+
+export function decodeSettingsState(s: string): SettingsState {
+  const state: SettingsState = JSON.parse(s);
+  state.mainPageState = decodeInstance(state.mainPageState, MainPageState);
+  state.addPageState = decodeInstance(state.addPageState, AddPageState);
+  state.pageState = decodeInstance(state.pageState, EditPageState);
+  state.pageState = decodeInstance(state.pageState, DeletePageState);
+  state.pageState = decodeInstance(state.pageState, ReorderPageState);
+  return state;
 }
 
 export interface ProjectSettings {

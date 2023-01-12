@@ -27,6 +27,9 @@
     "debug": "fitbit"
   },
   "dependencies": {
-    "fitbit-settings-commons": "^2.0.6"
+    "class-transformer": "^0.5.1",
+    "es6-shim": "^0.35.7",
+    "fitbit-settings-commons": "^2.0.6",
+    "reflect-metadata": "^0.1.13"
   }
 }

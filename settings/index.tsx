@@ -1,12 +1,15 @@
 import {
   ProjectSettings,
   defaultProject,
-  SettingsPage,
   EditPageState,
   MainPageState,
   AddPageState,
   DeletePageState,
   ReorderPageState,
+  SettingsPageState,
+  SettingsPage,
+  encodeSettingsState,
+  decodeSettingsState,
   SettingsState,
 } from "../common/settingsTypes";
 import {
@@ -17,13 +20,15 @@ import {
 
 function defaultSettingsState(): SettingsState {
   return {
-    pageState: new MainPageState(),
+    currentPage: SettingsPage.Main,
+    mainPageState: new MainPageState(),
   };
 }
 
 function renderMainPage(
   typedSetting: TypedSettingProps<ProjectSettings>
 ): JSX.Element {
+  console.log("rendering main page");
   return (
     <Page>
       <Section
@@ -41,28 +46,95 @@ function renderMainPage(
             var editPageState = new EditPageState();
             editPageState.projId = p.id;
             editPageState.newProjectConfig = { ...p };
-            typedSetting.getToUpdate().settingsState.pageState = editPageState;
+            typedSetting.update({
+              settingsState: {
+                currentPage: SettingsPage.Edit,
+                pageState: editPageState,
+              },
+            });
           }}
         />;
       })}
+
+      <Button
+        label="Add Project"
+        onClick={(e) => {
+          var addPageState = new AddPageState();
+          var nextId = typedSetting.get().nextId;
+          addPageState.projId = nextId;
+          typedSetting.update({ nextId: nextId + 1 });
+          addPageState.newProjectConfig = {
+            id: nextId,
+            name: "New Project",
+            repeatLength: 10,
+          };
+          typedSetting.update({
+            settingsState: {
+              currentPage: SettingsPage.Add,
+              addPageState: addPageState,
+            },
+          });
+          console.log("added new project and switched settings state to it");
+        }}
+      />
     </Page>
   );
 }
 
 function renderAddPage(
   typedSetting: TypedSettingProps<ProjectSettings>
-): JSX.Element {}
+): JSX.Element {
+  console.log("rendering add page");
+  var pageState = typedSetting.get().settingsState.addPageState;
+  return (
+    <Page>
+      <Section title={<Text>Edit Project</Text>}>
+        <TextInput
+          label="Project Name"
+          value={pageState.newProjectConfig.name}
+          onChange={(v) => {
+            // @ts-ignore; I don't know why the value passed here is actually an Object and not a string.
+            var value = v.value;
+            var pageState =
+              typedSetting.getToUpdate().settingsState.addPageState;
+            pageState.newProjectConfig.name = value;
+            typedSetting.commit();
+          }}
+        ></TextInput>
+      </Section>
+    </Page>
+  );
+}
 function renderEditPage(
   typedSetting: TypedSettingProps<ProjectSettings>
-): JSX.Element {}
+): JSX.Element {
+  return (
+    <Page>
+      <Text>TODO</Text>
+    </Page>
+  );
+}
 function renderDeletePage(
   typedSetting: TypedSettingProps<ProjectSettings>
-): JSX.Element {}
+): JSX.Element {
+  return (
+    <Page>
+      <Text>TODO</Text>
+    </Page>
+  );
+}
 function renderReorderPage(
   typedSetting: TypedSettingProps<ProjectSettings>
-): JSX.Element {}
+): JSX.Element {
+  return (
+    <Page>
+      <Text>TODO</Text>
+    </Page>
+  );
+}
 
 function renderSettingsPage(props: SettingsComponentProps): JSX.Element {
+  console.log("here");
   const typedSetting: TypedSettingProps<ProjectSettings> =
     new TypedSettingProps(props, {
       projects: {
@@ -73,27 +145,33 @@ function renderSettingsPage(props: SettingsComponentProps): JSX.Element {
         unpackInitiator: (v) => (v === undefined ? 1 : JSON.parse(v)),
       },
       settingsState: {
+        packer: (v) => encodeSettingsState(v),
         unpackInitiator: (v) =>
-          v === undefined ? defaultSettingsState() : JSON.parse(v),
+          v === undefined ? defaultSettingsState() : decodeSettingsState(v),
       },
     });
+  console.log("here again");
 
-  var curSettings = typedSetting.get();
-  var curPage = typedSetting.get().settingsState.pageState;
-  if (curPage instanceof MainPageState) {
+  var settingsState = typedSetting.get().settingsState;
+  var pageType = settingsState.currentPage;
+
+  if (pageType === SettingsPage.Main) {
     return renderMainPage(typedSetting);
-  } else if (curPage instanceof AddPageState) {
+  } else if (pageType === SettingsPage.Add) {
     return renderAddPage(typedSetting);
-  } else if (curPage instanceof EditPageState) {
+  } else if (pageType === SettingsPage.Edit) {
     return renderEditPage(typedSetting);
-  } else if (curPage instanceof DeletePageState) {
+  } else if (pageType === SettingsPage.Delete) {
     return renderDeletePage(typedSetting);
-  } else if (curPage instanceof ReorderPageState) {
+  } else if (pageType === SettingsPage.Reorder) {
     return renderReorderPage(typedSetting);
   } else {
     typedSetting.update({
       settingsState: { pageState: defaultSettingsState() },
     });
+    console.error(
+      `couldn't find page to render: current page class is ${settingsState.constructor.name}`
+    );
     return (
       <Page>
         <Text>Internal Error</Text>

@@ -114,7 +114,7 @@ function init() {
     saveSettings();
   }
   loadSettings();
-  loadProject(0);
+  loadProject(settings.projIdx);
 
   messaging.peerSocket.addEventListener("message", receiveMessage);
 
