@@ -50,6 +50,9 @@ export function encodeInstance(s: any): string {
 }
 
 export function decodeInstance<T>(o: any, c: new () => T): T {
+  if (o === undefined) {
+    return undefined;
+  }
   const object = new c();
   Object.entries(o).map(([key, value]) => (object[key] = value));
   return object;
@@ -60,19 +63,27 @@ export function encodeSettingsState(s: SettingsState): string {
 }
 
 export function decodeSettingsState(s: string): SettingsState {
+  console.log("decoding settings state");
   const state: SettingsState = JSON.parse(s);
   state.mainPageState = decodeInstance(state.mainPageState, MainPageState);
   state.addPageState = decodeInstance(state.addPageState, AddPageState);
-  state.pageState = decodeInstance(state.pageState, EditPageState);
-  state.pageState = decodeInstance(state.pageState, DeletePageState);
-  state.pageState = decodeInstance(state.pageState, ReorderPageState);
+  state.editPageState = decodeInstance(state.editPageState, EditPageState);
+  state.deletePageState = decodeInstance(
+    state.deletePageState,
+    DeletePageState
+  );
+  state.reorderPageState = decodeInstance(
+    state.reorderPageState,
+    ReorderPageState
+  );
+  console.log("finished decoding settings state");
   return state;
 }
 
 export interface ProjectSettings {
   settingsState: SettingsState;
   nextId: number;
-  projects: ProjectConfig[];
+  projects: Map<number, ProjectConfig>;
 }
 
 export function isProjectSettings(o: any): boolean {
