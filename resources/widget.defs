@@ -8,7 +8,7 @@
     <link rel="import" href="/mnt/sysassets/widgets/scrollbar.defs" />
     <link rel="import" href="/mnt/sysassets/widgets/tile_list_widget.defs" />
 
-    <symbol id="my-item" href="#tile-list-item" class="list-item">
+    <symbol id="my-item" href="#tile-list-item" class="list-item" display="none">
       <rect class="bg" />
       <text id="text" />
       <rect class="line" />

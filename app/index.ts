@@ -65,6 +65,7 @@ const SETTINGS_FNAME = "settings.json";
 
 var background: Element;
 var projectId: Element;
+var projectName: Element;
 
 var plusButton: Element;
 var subButton: Element;
@@ -157,6 +158,7 @@ async function loadProject(i: number) {
 
   background = document.getElementById("background");
   projectId = document.getElementById("project-id");
+  projectName = document.getElementById("project-name");
 
   plusButton = document.getElementById("plus-button");
   subButton = document.getElementById("sub-button");
@@ -216,12 +218,31 @@ async function loadProjectSelectionView() {
   await document.location.replace("./resources/settings/settings.view");
 
   let list = document.getElementById("myList");
-  let items = list.getElementsByClassName("list-item");
 
-  items.forEach((element, index) => {
-    let touch = element.getElementById("touch");
-    touch.onclick = () => loadProject(index);
-  });
+  // @ts-ignore
+  list.delegate = {
+    getTileInfo: (index: number) => {
+      return {
+        type: "list-pool",
+        // value: settings.projects[index]?.[1].name,
+        value: "Item",
+        index: index,
+      };
+    },
+    configureTile: (tile, info) => {
+      const index: number = info.index;
+      console.log(`Item: ${info.index}`);
+      if (info.type == "list-pool") {
+        tile.getElementById("text").text = settings.projects[index]?.[1].name;
+        let touch = tile.getElementById("touch");
+        touch.onclick = () => loadProject(index);
+      }
+    },
+  };
+
+  // length must be set AFTER delegate
+  // @ts-ignore
+  list.length = settings.projects.length;
 }
 
 function selectBubble(b: Bubble) {
@@ -269,6 +290,7 @@ function redraw() {
   }
 
   projectId.text = (1 + settings.projId).toString();
+  projectName.text = project.name;
 
   globalOutlineElm.style.visibility = "hidden";
   repeatCountOutlineElm.style.visibility = "hidden";

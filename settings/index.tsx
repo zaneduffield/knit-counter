@@ -1,9 +1,8 @@
 import {
   ProjectSettings,
   defaultProject,
-  EditPageState,
   MainPageState,
-  AddPageState,
+  ProjectDetailsPageState,
   DeletePageState,
   ReorderPageState,
   SettingsPageState,
@@ -66,13 +65,13 @@ function renderMainPage(
         renderItem={(p) => <Text>{p.name}</Text>}
         onSelection={({ values }) => {
           let p = values[0];
-          var editPageState = new EditPageState();
-          editPageState.projId = p.id;
-          editPageState.newProjectConfig = { ...p };
+          var detailsState = new ProjectDetailsPageState();
+          detailsState.projId = p.id;
+          detailsState.newProjectConfig = { ...p };
           typedSetting.update({
             settingsState: {
               currentPage: SettingsPage.Edit,
-              editPageState: editPageState,
+              projectDetailsState: detailsState,
             },
           });
         }}
@@ -81,11 +80,11 @@ function renderMainPage(
       <Button
         label="Add Project"
         onClick={(e) => {
-          var addPageState = new AddPageState();
+          var detailsState = new ProjectDetailsPageState();
           var nextId = typedSetting.get().nextId;
-          addPageState.projId = nextId;
+          detailsState.projId = nextId;
           typedSetting.update({ nextId: nextId + 1 });
-          addPageState.newProjectConfig = {
+          detailsState.newProjectConfig = {
             id: nextId,
             name: "New Project",
             repeatLength: 10,
@@ -93,7 +92,7 @@ function renderMainPage(
           typedSetting.update({
             settingsState: {
               currentPage: SettingsPage.Add,
-              addPageState: addPageState,
+              projectDetailsState: detailsState,
             },
           });
           console.log("added new project and switched settings state to it");
@@ -107,7 +106,7 @@ function renderAddPage(
   typedSetting: TypedSettingProps<ProjectSettings>
 ): JSX.Element {
   console.log("rendering add page");
-  var pageState = typedSetting.get().settingsState.addPageState;
+  var pageState = typedSetting.get().settingsState.projectDetailsState;
   return (
     <Page>
       <Section title={<Text>Add Project</Text>}>
@@ -121,7 +120,7 @@ function renderAddPage(
 }
 
 function repeatLengthInput(
-  pageState: AddPageState,
+  pageState: ProjectDetailsPageState,
   typedSetting: TypedSettingProps<ProjectSettings>
 ) {
   return (
@@ -129,12 +128,12 @@ function repeatLengthInput(
       label="Repeat Length"
       value={`${pageState.newProjectConfig.repeatLength}`}
       onChange={(v) => {
-        console;
-        typedSetting.getToUpdate().projects.get(pageState.projId).repeatLength =
-          parseInt(
-            // @ts-ignore; I don't know why the value passed here is actually an Object and not a string.
-            v.name
-          );
+        var newState =
+          typedSetting.getToUpdate().settingsState.projectDetailsState;
+        newState.newProjectConfig.repeatLength = parseInt(
+          // @ts-ignore; I don't know why the value passed here is actually an Object and not a string.
+          v.name
+        );
         typedSetting.commit();
       }}
       type="number"
@@ -143,7 +142,7 @@ function repeatLengthInput(
 }
 
 function projectNameInput(
-  pageState: AddPageState | EditPageState,
+  pageState: ProjectDetailsPageState,
   typedSetting: TypedSettingProps<ProjectSettings>
 ) {
   return (
@@ -154,8 +153,9 @@ function projectNameInput(
         console.log(`new project name: ${JSON.stringify(v)}`);
         // @ts-ignore; I don't know why the value passed here is actually an Object and not a string.
         var value = v.name;
-        var pageState = typedSetting.getToUpdate().settingsState.addPageState;
-        pageState.newProjectConfig.name = value;
+        var newPageState =
+          typedSetting.getToUpdate().settingsState.projectDetailsState;
+        newPageState.newProjectConfig.name = value;
         typedSetting.commit();
       }}
     />
@@ -164,7 +164,7 @@ function projectNameInput(
 
 function saveNewProject(
   typedSetting: TypedSettingProps<ProjectSettings>,
-  pageState: AddPageState
+  pageState: ProjectDetailsPageState
 ) {
   console.log(`saving new project with id ${pageState.projId}`);
   return (
@@ -184,7 +184,7 @@ function saveNewProject(
 
 function saveProjectEdit(
   typedSetting: TypedSettingProps<ProjectSettings>,
-  pageState: EditPageState
+  pageState: ProjectDetailsPageState
 ) {
   return (
     <Button
@@ -205,7 +205,7 @@ function renderEditPage(
   typedSetting: TypedSettingProps<ProjectSettings>
 ): JSX.Element {
   console.log("rendering edit page");
-  var pageState = typedSetting.get().settingsState.editPageState;
+  var pageState = typedSetting.get().settingsState.projectDetailsState;
   return (
     <Page>
       <Section title={<Text>Edit Project</Text>}>

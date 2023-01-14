@@ -24,6 +24,10 @@ text {
   text-length: 32;
 }
 
+#project-name {
+  text-anchor: left;
+}
+
 .counter-text {
   x: 0;
 

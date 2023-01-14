@@ -18,8 +18,7 @@ export interface SettingsState {
   currentPage: SettingsPage;
 
   mainPageState?: MainPageState;
-  addPageState?: AddPageState;
-  editPageState?: EditPageState;
+  projectDetailsState?: ProjectDetailsPageState;
   deletePageState?: DeletePageState;
   reorderPageState?: ReorderPageState;
 }
@@ -28,12 +27,7 @@ export class SettingsPageState {}
 
 export class MainPageState extends SettingsPageState {}
 
-export class AddPageState extends SettingsPageState {
-  projId: number;
-  newProjectConfig: ProjectConfig;
-}
-
-export class EditPageState extends SettingsPageState {
+export class ProjectDetailsPageState extends SettingsPageState {
   projId: number;
   newProjectConfig: ProjectConfig;
 }
@@ -82,8 +76,10 @@ export function decodeSettingsState(s: string | undefined): SettingsState {
   console.log("decoding settings state");
   const state: SettingsState = JSON.parse(s);
   state.mainPageState = decodeInstance(state.mainPageState, MainPageState);
-  state.addPageState = decodeInstance(state.addPageState, AddPageState);
-  state.editPageState = decodeInstance(state.editPageState, EditPageState);
+  state.projectDetailsState = decodeInstance(
+    state.projectDetailsState,
+    ProjectDetailsPageState
+  );
   state.deletePageState = decodeInstance(
     state.deletePageState,
     DeletePageState
