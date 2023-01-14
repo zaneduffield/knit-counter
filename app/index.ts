@@ -9,6 +9,13 @@ import {
   ProjectOperation,
   SettingMessage,
 } from "../common/messages";
+import {
+  decodeProjectSettings,
+  defaultProject,
+  INIT_PROJ_ID,
+  ProjectConfig,
+  ProjectSettings,
+} from "../common/settingsTypes";
 import { me as appbit } from "appbit";
 
 interface Project {
@@ -41,15 +48,15 @@ enum Bubble {
 }
 
 interface Settings {
-  projIdx: number;
-  selectedProjName: string;
-  projects: Project[];
+  projId: number;
+  // maps don't work properly on this device
+  // most of the methods aren't even there
+  projects: [number, Project][];
 }
 
 var settings: Settings = {
-  projIdx: 0,
-  selectedProjName: "my project",
-  projects: [initProject("my project")],
+  projId: INIT_PROJ_ID,
+  projects: [[INIT_PROJ_ID, initProject("my project")]],
 };
 
 var project: Project;
@@ -74,19 +81,32 @@ var globalOutlineElm: Element;
 var repeatProgressOutlineElm: Element;
 var repeatCountOutlineElm: Element;
 
-function saveSettings() {
-  console.log("writing settings file");
-  writeFileSync(SETTINGS_FNAME, settings, "json");
+function stringifySettings(settings: Settings): string {
+  return JSON.stringify(settings);
 }
 
-function getProject(): Project {
-  return settings.projects[settings.projIdx];
+function parseSettings(s: string): Settings {
+  return JSON.parse(s);
+}
+
+function saveSettings() {
+  console.log("writing settings file");
+  writeFileSync(SETTINGS_FNAME, stringifySettings(settings), "utf-8");
+}
+
+function getCurProject(): Project {
+  return getProject(settings.projId);
+}
+
+function getProject(id: number): Project | undefined {
+  // jerryscript doesn't have 'array.find'
+  return settings.projects.filter(([n, _]) => n === id)[0]?.[1];
 }
 
 function loadSettings() {
   console.log("reading settings file");
-  settings = readFileSync(SETTINGS_FNAME, "json");
-  project = getProject();
+  settings = parseSettings(readFileSync(SETTINGS_FNAME, "utf-8"));
+  project = getCurProject();
 }
 
 function refresh() {
@@ -95,11 +115,13 @@ function refresh() {
 }
 
 function setProjectIdx(i: number) {
-  while (i >= settings.projects.length) {
-    settings.projects.push(initProject(`Project ${i}`));
+  const proj = getProject(i);
+  if (proj !== undefined) {
+    settings.projId = i;
+    project = proj;
+  } else {
+    console.error("unknown project ID not selecting project");
   }
-  settings.projIdx = i;
-  project = getProject();
 }
 
 var y = 0;
@@ -114,7 +136,7 @@ function init() {
     saveSettings();
   }
   loadSettings();
-  loadProject(settings.projIdx);
+  loadProject(settings.projId);
 
   messaging.peerSocket.addEventListener("message", receiveMessage);
 
@@ -246,7 +268,7 @@ function redraw() {
     repeatCountElm.text = "";
   }
 
-  projectId.text = (1 + settings.projIdx).toString();
+  projectId.text = (1 + settings.projId).toString();
 
   globalOutlineElm.style.visibility = "hidden";
   repeatCountOutlineElm.style.visibility = "hidden";
@@ -267,21 +289,27 @@ function redraw() {
 function receiveSettingsMessage(obj: SettingMessage) {
   var key = obj.key;
   var value = obj.value;
-  console.log(
-    `recieved data over socket: key='${key}', value='${JSON.stringify(value)}'`
-  );
+  console.log(`recieved data over socket: key='${key}', value='${value}'`);
 
-  if (key === "repeatLength") {
-    console.log(`repeat length updated to ${value.name}`);
-    project.repeatLength = value.name;
-  } else if (key === "textColour") {
-    project.textColour = value;
-  } else if (key === "circleColour") {
-    project.circleColour = value;
-  } else if (key === "buttonMainColour") {
-    project.buttonMainColour = value;
-  } else if (key === "buttonSecondaryColour") {
-    project.buttonSecondaryColour = value;
+  if (key === "projects") {
+    var projectSettings: [number, ProjectConfig][] = JSON.parse(value);
+    projectSettings.forEach(([id, incomingProject]) => {
+      var proj = getProject(id);
+      if (proj !== undefined) {
+        proj.name = incomingProject.name;
+        proj.repeatLength = incomingProject.repeatLength;
+      } else {
+        var proj = initProject(incomingProject.name);
+        settings.projects.push([id, proj]);
+        proj.repeatLength = incomingProject.repeatLength;
+      }
+    });
+
+    settings.projects = settings.projects.filter(
+      ([id, _]) => projectSettings.filter(([id2, _]) => id2 === id).length > 0
+    );
+  } else {
+    console.warn(`ignoring settings message with key ${key}`);
   }
 }
 
@@ -297,11 +325,11 @@ function receiveProjectOperation(op: ProjectOperation) {
 
 // need to generalise this to work with the entire settings object
 function receiveMessageItem(o) {
-  // if (isSettingsMessage(o)) {
-  //   receiveSettingsMessage(o);
-  // } else if (isProjectOperation(o)) {
-  //   receiveProjectOperation(o);
-  // }
+  if (isSettingsMessage(o)) {
+    receiveSettingsMessage(o);
+  } else if (isProjectOperation(o)) {
+    receiveProjectOperation(o);
+  }
 }
 
 function receiveMessage(evt: messaging.MessageEvent) {

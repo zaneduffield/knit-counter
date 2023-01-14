@@ -1,6 +1,6 @@
 export interface SettingMessage {
     key: string;
-    value: any;
+    value: string;
 }
 
 export function isSettingsMessage(o: any): boolean {

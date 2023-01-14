@@ -1,3 +1,5 @@
+export const INIT_PROJ_ID = 0;
+
 export interface ProjectConfig {
   id: number;
   name: string;
@@ -58,11 +60,25 @@ export function decodeInstance<T>(o: any, c: new () => T): T {
   return object;
 }
 
-export function encodeSettingsState(s: SettingsState): string {
+export function defaultSettingsState(): SettingsState {
+  return {
+    currentPage: SettingsPage.Main,
+    mainPageState: new MainPageState(),
+  };
+}
+
+export function encodeSettingsState(s: SettingsState | unknown): string {
+  if (s === undefined) {
+    s = defaultSettingsState();
+  }
   return encodeInstance(s);
 }
 
-export function decodeSettingsState(s: string): SettingsState {
+export function decodeSettingsState(s: string | undefined): SettingsState {
+  if (s === undefined) {
+    return defaultSettingsState();
+  }
+
   console.log("decoding settings state");
   const state: SettingsState = JSON.parse(s);
   state.mainPageState = decodeInstance(state.mainPageState, MainPageState);
@@ -78,6 +94,20 @@ export function decodeSettingsState(s: string): SettingsState {
   );
   console.log("finished decoding settings state");
   return state;
+}
+
+type Projects = Map<number, ProjectConfig>;
+
+export function encodeProjectSettings(projects: Projects): string {
+  return JSON.stringify(Array(...projects.entries()));
+}
+
+export function decodeProjectSettings(s: string | undefined): Projects {
+  return new Map(
+    s === undefined
+      ? [[INIT_PROJ_ID, defaultProject(INIT_PROJ_ID)]]
+      : JSON.parse(s)
+  );
 }
 
 export interface ProjectSettings {

@@ -5,33 +5,28 @@ import { Operation, SettingMessage } from "../common/messages";
 import { ProjectSettings } from "../common/settingsTypes";
 
 // Settings have been changed
-// settingsStorage.addEventListener("change", (evt) => {
-//   console.log(`key: ${evt.key}, value: ${evt.newValue}`);
-//   var settings: ProjectSettings = {
-//     nextId: undefined,
-//     projects: undefined,
-//   };
-//   settings[evt.key] = evt.newValue;
-//   sendData(settings);
-// });
+settingsStorage.addEventListener("change", (evt) => {
+  console.log(`key: ${evt.key}, value: ${evt.newValue}`);
+  sendData(keyValuePair(evt.key, evt.newValue));
+});
 
-// // Settings were changed while the companion was not running
-// if (companion.launchReasons.settingsChanged) {
-//   // Send the value of the setting
-//   var data: SettingMessage[] = [];
-//   for (var i = 0; i < settingsStorage.length; i++) {
-//     var key = settingsStorage.key(i);
-//     var value = settingsStorage.getItem(key);
-//     data.push(keyValuePair(key, value));
-//   }
+// Settings were changed while the companion was not running
+if (companion.launchReasons.settingsChanged) {
+  // Send the value of the setting
+  var data: SettingMessage[] = [];
+  for (var i = 0; i < settingsStorage.length; i++) {
+    var key = settingsStorage.key(i);
+    var value = settingsStorage.getItem(key);
+    data.push(keyValuePair(key, value));
+  }
 
-//   sendData(data);
-// }
+  sendData(data);
+}
 
-function keyValuePair(key: string, val: any): SettingMessage {
+function keyValuePair(key: string, val: string): SettingMessage {
   return {
     key: key,
-    value: JSON.parse(val),
+    value: val,
   };
 }
 

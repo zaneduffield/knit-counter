@@ -12,19 +12,15 @@ import {
   decodeSettingsState,
   SettingsState,
   ProjectConfig,
+  encodeProjectSettings,
+  decodeProjectSettings,
+  defaultSettingsState,
 } from "../common/settingsTypes";
 import {
   TypedSettingProps,
   ASIS,
   SettingsComponentProps,
 } from "fitbit-settings-commons";
-
-function defaultSettingsState(): SettingsState {
-  return {
-    currentPage: SettingsPage.Main,
-    mainPageState: new MainPageState(),
-  };
-}
 
 function cancelButton(
   typedSetting: TypedSettingProps<ProjectSettings>
@@ -271,17 +267,15 @@ function renderSettingsPage(props: SettingsComponentProps): JSX.Element {
   const typedSetting: TypedSettingProps<ProjectSettings> =
     new TypedSettingProps(props, {
       projects: {
-        packer: (v) => JSON.stringify(Array(...v.entries())),
-        unpackInitiator: (v) =>
-          new Map(v === undefined ? [defaultProject(0)] : JSON.parse(v)),
+        packer: (v) => encodeProjectSettings(v),
+        unpackInitiator: (v) => decodeProjectSettings(v),
       },
       nextId: {
         unpackInitiator: (v) => (v === undefined ? 1 : JSON.parse(v)),
       },
       settingsState: {
         packer: (v) => encodeSettingsState(v),
-        unpackInitiator: (v) =>
-          v === undefined ? defaultSettingsState() : decodeSettingsState(v),
+        unpackInitiator: (v) => decodeSettingsState(v),
       },
     });
 
