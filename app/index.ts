@@ -95,7 +95,7 @@ function saveSettings() {
   writeFileSync(SETTINGS_FNAME, stringifySettings(settings), "utf-8");
 }
 
-function getCurProject(): Project {
+function getCurProject(): Project | undefined {
   return getProject(settings.projId);
 }
 
@@ -115,13 +115,21 @@ function refresh() {
   redraw();
 }
 
-function setProjectIdx(i: number) {
+function setCurProject(p: Project) {}
+
+function setCurProjectId(i: number) {
   const proj = getProject(i);
   if (proj !== undefined) {
     settings.projId = i;
     project = proj;
   } else {
-    console.error("unknown project ID not selecting project");
+    project = undefined;
+    console.error(`unknown project ID: ${i}`);
+    console.error(
+      `known project IDs: ${JSON.stringify(
+        settings.projects.map(([id, _]) => id)
+      )}`
+    );
   }
 }
 
@@ -137,7 +145,7 @@ function init() {
     saveSettings();
   }
   loadSettings();
-  loadProject(settings.projId);
+  tryLoadProjectById(settings.projId);
 
   messaging.peerSocket.addEventListener("message", receiveMessage);
 
@@ -152,9 +160,20 @@ function init() {
   appbit.onunload = () => saveSettings();
 }
 
-async function loadProject(i: number) {
+async function tryLoadProjectById(i: number) {
+  const proj = getProject(i);
+  if (proj === undefined) {
+    await loadProjectSelectionView();
+  } else {
+    await loadProject([i, proj]);
+  }
+}
+
+async function loadProject([id, proj]: [number, Project]) {
+  settings.projId = id;
+  project = proj;
+
   await document.location.replace("./resources/index.view");
-  setProjectIdx(i);
 
   background = document.getElementById("background");
   projectId = document.getElementById("project-id");
@@ -216,8 +235,20 @@ async function loadProject(i: number) {
 
 async function loadProjectSelectionView() {
   await document.location.replace("./resources/settings/settings.view");
+  redrawSettings();
+}
 
+function redrawSettings() {
   let list = document.getElementById("myList");
+  let help = document.getElementById("no-project-help");
+  if (settings.projects.length === 0) {
+    help.style.display = "inline";
+    list.style.display = "none";
+    return;
+  }
+
+  help.style.display = "none";
+  list.style.display = "inline";
 
   // @ts-ignore
   list.delegate = {
@@ -235,7 +266,7 @@ async function loadProjectSelectionView() {
       if (info.type == "list-pool") {
         tile.getElementById("text").text = settings.projects[index]?.[1].name;
         let touch = tile.getElementById("touch");
-        touch.onclick = () => loadProject(index);
+        touch.onclick = () => loadProject(settings.projects[index]);
       }
     },
   };
@@ -273,6 +304,15 @@ function incrementEvent(i: number): (e: MouseEvent) => void {
 }
 
 function redraw() {
+  console.log(`current view: ${document.location.pathname}`);
+  if (document.location.pathname === "./resources/settings/settings.view") {
+    redrawSettings();
+  } else {
+    redrawProject();
+  }
+}
+
+function redrawProject() {
   console.log(
     `updating display with global count ${project.globalCount} and repeat length ${project.repeatLength}`
   );
@@ -289,7 +329,7 @@ function redraw() {
     repeatCountElm.text = "";
   }
 
-  projectId.text = (1 + settings.projId).toString();
+  projectId.text = settings.projId.toString();
   projectName.text = project.name;
 
   globalOutlineElm.style.visibility = "hidden";
@@ -308,7 +348,7 @@ function redraw() {
   }
 }
 
-function receiveSettingsMessage(obj: SettingMessage) {
+async function receiveSettingsMessage(obj: SettingMessage) {
   var key = obj.key;
   var value = obj.value;
   console.log(`recieved data over socket: key='${key}', value='${value}'`);
@@ -330,6 +370,12 @@ function receiveSettingsMessage(obj: SettingMessage) {
     settings.projects = settings.projects.filter(
       ([id, _]) => projectSettings.filter(([id2, _]) => id2 === id).length > 0
     );
+
+    if (getCurProject() === undefined) {
+      await loadProjectSelectionView();
+    } else {
+      redraw();
+    }
   } else {
     console.warn(`ignoring settings message with key ${key}`);
   }
@@ -346,20 +392,22 @@ function receiveProjectOperation(op: ProjectOperation) {
 }
 
 // need to generalise this to work with the entire settings object
-function receiveMessageItem(o) {
+async function receiveMessageItem(o) {
   if (isSettingsMessage(o)) {
-    receiveSettingsMessage(o);
+    await receiveSettingsMessage(o);
   } else if (isProjectOperation(o)) {
     receiveProjectOperation(o);
   }
 }
 
-function receiveMessage(evt: messaging.MessageEvent) {
+async function receiveMessage(evt: messaging.MessageEvent) {
   if (evt && evt.data) {
     if (evt.data instanceof Array) {
-      evt.data.forEach(receiveMessageItem);
+      for (const elm in evt.data) {
+        await receiveMessageItem(elm);
+      }
     } else if (evt.data instanceof Object) {
-      receiveMessageItem(evt.data);
+      await receiveMessageItem(evt.data);
     }
     redraw();
     saveSettings();

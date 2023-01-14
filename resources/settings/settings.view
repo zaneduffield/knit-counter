@@ -1,4 +1,11 @@
 <svg>
+  <svg id="no-project-help" class="horizontal-pad">
+    <use href="#dynamic-textarea" class="p2 foreground-fill" y="50">
+      <set href="#text" attributeName="text-buffer" to="No projects currently exist. Please use the settings in the companion app on the mobile device to create a new project." />
+    </use>
+    <rect width="100%" height="2" fill="fb-cyan" y="$+6" />
+  </svg>
+
   <use id="myList" href="#tile-list" class="horizontal-pad">
     <var id="separator-height-bottom" value="6" />
     <var id="reorder-enabled" value="1" />

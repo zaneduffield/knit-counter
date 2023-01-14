@@ -39,12 +39,6 @@ function cancelButton(
 function renderMainPage(
   typedSetting: TypedSettingProps<ProjectSettings>
 ): JSX.Element {
-  console.log(
-    `rendering main page: ${Array(...typedSetting.get().projects.entries())}`
-  );
-  console.log(
-    `rendering main page n items: ${typedSetting.get().projects.size}`
-  );
   return (
     <Page>
       <Section
@@ -56,7 +50,7 @@ function renderMainPage(
       />
 
       <Select
-        title="Projects"
+        title=""
         label="Edit Project"
         selectViewTitle="Select project to edit"
         options={Array(...typedSetting.get().projects.values()).map((p) => ({
@@ -86,7 +80,7 @@ function renderMainPage(
           typedSetting.update({ nextId: nextId + 1 });
           detailsState.newProjectConfig = {
             id: nextId,
-            name: "New Project",
+            name: `Project ${nextId}`,
             repeatLength: 10,
           };
           typedSetting.update({

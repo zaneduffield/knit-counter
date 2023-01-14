@@ -63,6 +63,10 @@ text {
 
 
 /* project selection ui */
+#no-project-help {
+  display: hidden;
+}
+
 .list-item {
   height: 112;
 }
