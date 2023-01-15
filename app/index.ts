@@ -5,17 +5,21 @@ import { readFileSync, writeFileSync, existsSync } from "fs";
 import {
   isProjectOperation,
   isSettingsMessage,
+  Operation,
   ProjectOperation,
   SettingMessage,
 } from "../common/messages";
 import {
+  DEFAULT_TIME_FORMAT,
   INIT_PROJ_ID,
   INIT_PROJ_NAME,
   INIT_REPEAT_LEN,
   ProjectConfig,
+  TimeFormat,
 } from "../common/settingsTypes";
 import { me as appbit } from "appbit";
 import clock from "clock";
+import "./padStart";
 
 interface Project {
   name: string;
@@ -47,6 +51,7 @@ enum Bubble {
 }
 
 interface Settings {
+  timeFormat: TimeFormat;
   projId: number;
   // maps don't work properly on this device
   // most of the methods aren't even there
@@ -54,6 +59,7 @@ interface Settings {
 }
 
 var settings: Settings = {
+  timeFormat: DEFAULT_TIME_FORMAT,
   projId: INIT_PROJ_ID,
   projects: [[INIT_PROJ_ID, initProject(INIT_PROJ_NAME, INIT_REPEAT_LEN)]],
 };
@@ -166,19 +172,46 @@ async function tryLoadProjectById(i: number) {
     await loadProject([i, proj]);
   }
 }
-
 function pad2dig(n: number) {
   return n.toString().padStart(2, "0");
 }
 
-function updateTime(date: Date) {
-  const elm = document.getElementById("time");
+function updateTime(date: Date, elm: Element) {
+  console.log("updating time");
   if (elm) {
-    const timeStr = `${pad2dig(date.getHours())}:${pad2dig(date.getMinutes())}`;
+    const timeFormat = settings.timeFormat ?? DEFAULT_TIME_FORMAT;
+    const mins = pad2dig(date.getMinutes());
+    const hours = timeFormat.is24hourTime
+      ? pad2dig(date.getHours())
+      : 1 + ((date.getHours() - 1) % 12);
+    const suffix = timeFormat.is24hourTime
+      ? ""
+      : date.getHours() < 12
+      ? " AM"
+      : " PM";
+
+    const secs = timeFormat.showSeconds ? ":" + pad2dig(date.getSeconds()) : "";
+    const timeStr = `${hours}:${mins}${secs}${suffix}`;
     elm.text = timeStr;
 
     console.log(new Date().toLocaleTimeString());
     console.log(date.toTimeString());
+  }
+}
+
+function setupClock() {
+  console.log("configuring clock");
+
+  const elm = document.getElementById("time");
+  if (settings.timeFormat.showTime) {
+    elm.style.display = "inline";
+
+    clock.granularity = settings.timeFormat.showSeconds ? "seconds" : "minutes";
+    updateTime(new Date(), elm);
+    clock.ontick = (e) => updateTime(e.date, elm);
+  } else {
+    elm.style.display = "none";
+    clock.ontick = undefined;
   }
 }
 
@@ -191,9 +224,7 @@ async function loadProject([id, proj]: [number, Project]) {
   background = document.getElementById("background");
   projectName = document.getElementById("project-name");
 
-  clock.granularity = "minutes";
-  updateTime(new Date());
-  clock.ontick = (e) => updateTime(e.date);
+  setupClock();
 
   plusButton = document.getElementById("plus-button");
   subButton = document.getElementById("sub-button");
@@ -392,27 +423,29 @@ async function receiveSettingsMessage(obj: SettingMessage) {
     } else {
       redraw();
     }
+  } else if (key === "timeFormat") {
+    settings.timeFormat = JSON.parse(value);
+    setupClock();
   } else {
     console.warn(`ignoring settings message with key ${key}`);
   }
 }
 
 function receiveProjectOperation(op: ProjectOperation) {
-  // var projName = op.project ?? project.name;
-  // var proj = findProject(projName);
-  // if (op.operation === Operation.Reset) {
-  //   console.log(`resetting counters for project ${projName} to zero`);
-  //   proj.globalCount = 0;
-  //   proj.repeatCount = 0;
-  // }
+  if (op.operation === Operation.ResetCounters) {
+    console.log(`resetting counters for project id ${op.projId} to zero`);
+    var proj = getProject(op.projId);
+    proj.globalCount = 0;
+    proj.repeatCount = 0;
+  }
 }
 
 // need to generalise this to work with the entire settings object
 async function receiveMessageItem(o) {
   if (isSettingsMessage(o)) {
     await receiveSettingsMessage(o);
-  } else if (isProjectOperation(o)) {
-    receiveProjectOperation(o);
+  } else if (o.projectOperation) {
+    receiveProjectOperation(o.projectOperation);
   }
 }
 
@@ -429,8 +462,5 @@ async function receiveMessage(evt: messaging.MessageEvent) {
     saveSettings();
   }
 }
-
-// export default () => {
-// };
 
 init();

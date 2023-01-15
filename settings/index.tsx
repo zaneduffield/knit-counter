@@ -1,5 +1,5 @@
 import {
-  ProjectSettings,
+  Settings,
   defaultProject,
   MainPageState,
   ProjectDetailsPageState,
@@ -14,16 +14,16 @@ import {
   encodeProjectSettings,
   decodeProjectSettings,
   defaultSettingsState,
+  DEFAULT_TIME_FORMAT,
 } from "../common/settingsTypes";
 import {
   TypedSettingProps,
   ASIS,
   SettingsComponentProps,
 } from "fitbit-settings-commons";
+import { Operation } from "../common/messages";
 
-function cancelButton(
-  typedSetting: TypedSettingProps<ProjectSettings>
-): JSX.Element {
+function cancelButton(typedSetting: TypedSettingProps<Settings>): JSX.Element {
   return (
     <Button
       label="Cancel"
@@ -37,68 +37,119 @@ function cancelButton(
 }
 
 function renderMainPage(
-  typedSetting: TypedSettingProps<ProjectSettings>
+  typedSetting: TypedSettingProps<Settings>
 ): JSX.Element {
   return (
     <Page>
       <Section
         title={
           <Text bold align="center">
-            Knit Counter Settings
+            Project Settings
           </Text>
         }
-      />
+      >
+        <Select
+          title=""
+          label="Edit Project"
+          selectViewTitle="Select project to edit"
+          options={Array(...typedSetting.get().projects.values()).map((p) => ({
+            ...p,
+          }))}
+          renderItem={(p) => <Text>{p.name}</Text>}
+          onSelection={({ values }) => {
+            let p = values[0];
+            var detailsState = new ProjectDetailsPageState();
+            detailsState.projId = p.id;
+            detailsState.newProjectConfig = { ...p };
+            typedSetting.update({
+              settingsState: {
+                currentPage: SettingsPage.Edit,
+                projectDetailsState: detailsState,
+              },
+            });
+          }}
+        />
 
-      <Select
-        title=""
-        label="Edit Project"
-        selectViewTitle="Select project to edit"
-        options={Array(...typedSetting.get().projects.values()).map((p) => ({
-          ...p,
-        }))}
-        renderItem={(p) => <Text>{p.name}</Text>}
-        onSelection={({ values }) => {
-          let p = values[0];
-          var detailsState = new ProjectDetailsPageState();
-          detailsState.projId = p.id;
-          detailsState.newProjectConfig = { ...p };
-          typedSetting.update({
-            settingsState: {
-              currentPage: SettingsPage.Edit,
-              projectDetailsState: detailsState,
-            },
-          });
-        }}
-      />
+        <Button
+          label="Add Project"
+          onClick={(e) => {
+            var detailsState = new ProjectDetailsPageState();
+            var nextId = typedSetting.get().nextId;
+            detailsState.projId = nextId;
+            typedSetting.update({ nextId: nextId + 1 });
+            detailsState.newProjectConfig = {
+              id: nextId,
+              name: `Project ${nextId}`,
+              repeatLength: 10,
+            };
+            typedSetting.update({
+              settingsState: {
+                currentPage: SettingsPage.Add,
+                projectDetailsState: detailsState,
+              },
+            });
+            console.log("added new project and switched settings state to it");
+          }}
+        />
+      </Section>
 
-      <Button
-        label="Add Project"
-        onClick={(e) => {
-          var detailsState = new ProjectDetailsPageState();
-          var nextId = typedSetting.get().nextId;
-          detailsState.projId = nextId;
-          typedSetting.update({ nextId: nextId + 1 });
-          detailsState.newProjectConfig = {
-            id: nextId,
-            name: `Project ${nextId}`,
-            repeatLength: 10,
-          };
-          typedSetting.update({
-            settingsState: {
-              currentPage: SettingsPage.Add,
-              projectDetailsState: detailsState,
-            },
-          });
-          console.log("added new project and switched settings state to it");
-        }}
-      />
+      {renderTimeSettings(typedSetting)}
     </Page>
   );
 }
 
-function renderAddPage(
-  typedSetting: TypedSettingProps<ProjectSettings>
+function renderTimeSettings(
+  typedSetting: TypedSettingProps<Settings>
 ): JSX.Element {
+  var secondaryTimeSettings: JSX.Element[] = [];
+  if (typedSetting.get().timeFormat.showTime) {
+    secondaryTimeSettings.push(
+      <Toggle
+        label="Show Seconds"
+        /* @ts-ignore the TS typing package is a little outdated */
+        value={typedSetting.get().timeFormat.showSeconds}
+        onChange={(v) => {
+          typedSetting.getToUpdate().timeFormat.showSeconds = v;
+          typedSetting.commit();
+        }}
+      />
+    );
+    secondaryTimeSettings.push(
+      <Toggle
+        label="Use 24-hour Time"
+        /* @ts-ignore the TS typing package is a little outdated */
+        value={typedSetting.get().timeFormat.is24hourTime}
+        onChange={(v) => {
+          typedSetting.getToUpdate().timeFormat.is24hourTime = v;
+          typedSetting.commit();
+        }}
+      />
+    );
+  }
+
+  return (
+    <Section
+      title={
+        <Text bold align="center">
+          Clock Settings
+        </Text>
+      }
+    >
+      <Toggle
+        label="Show Time"
+        /* @ts-ignore the TS typing package is a little outdated */
+        value={typedSetting.get().timeFormat.showTime}
+        onChange={(v) => {
+          typedSetting.getToUpdate().timeFormat.showTime = v;
+          typedSetting.commit();
+        }}
+      />
+      {secondaryTimeSettings}
+    </Section>
+  );
+}
+
+function renderAddPage(typedSetting: TypedSettingProps<Settings>): JSX.Element {
   console.log("rendering add page");
   var pageState = typedSetting.get().settingsState.projectDetailsState;
   return (
@@ -115,7 +166,7 @@ function renderAddPage(
 
 function repeatLengthInput(
   pageState: ProjectDetailsPageState,
-  typedSetting: TypedSettingProps<ProjectSettings>
+  typedSetting: TypedSettingProps<Settings>
 ) {
   return (
     <TextInput
@@ -137,7 +188,7 @@ function repeatLengthInput(
 
 function projectNameInput(
   pageState: ProjectDetailsPageState,
-  typedSetting: TypedSettingProps<ProjectSettings>
+  typedSetting: TypedSettingProps<Settings>
 ) {
   return (
     <TextInput
@@ -157,7 +208,7 @@ function projectNameInput(
 }
 
 function saveNewProject(
-  typedSetting: TypedSettingProps<ProjectSettings>,
+  typedSetting: TypedSettingProps<Settings>,
   pageState: ProjectDetailsPageState
 ) {
   console.log(`saving new project with id ${pageState.projId}`);
@@ -177,7 +228,7 @@ function saveNewProject(
 }
 
 function saveProjectEdit(
-  typedSetting: TypedSettingProps<ProjectSettings>,
+  typedSetting: TypedSettingProps<Settings>,
   pageState: ProjectDetailsPageState
 ) {
   return (
@@ -196,7 +247,7 @@ function saveProjectEdit(
 }
 
 function renderEditPage(
-  typedSetting: TypedSettingProps<ProjectSettings>
+  typedSetting: TypedSettingProps<Settings>
 ): JSX.Element {
   console.log("rendering edit page");
   var pageState = typedSetting.get().settingsState.projectDetailsState;
@@ -208,6 +259,21 @@ function renderEditPage(
         {saveProjectEdit(typedSetting, pageState)}
         {cancelButton(typedSetting)}
       </Section>
+      <Section title={<Text>Reset Project Counter</Text>}>
+        <Button
+          label="Reset"
+          onClick={(e) => {
+            typedSetting.getToUpdate().settingsState.currentPage =
+              SettingsPage.Delete;
+            var deleteState = new DeletePageState();
+            deleteState.projId = pageState.projId;
+            typedSetting.getToUpdate().settingsState.deletePageState =
+              deleteState;
+            typedSetting.commit();
+          }}
+        />
+      </Section>
+
       <Section title={<Text>Delete Project</Text>}>
         <Button
           label="Delete"
@@ -227,7 +293,7 @@ function renderEditPage(
 }
 
 function renderDeletePage(
-  typedSetting: TypedSettingProps<ProjectSettings>
+  typedSetting: TypedSettingProps<Settings>
 ): JSX.Element {
   console.log("rendering delete page");
   var pageState = typedSetting.get().settingsState.deletePageState;
@@ -257,19 +323,53 @@ function renderDeletePage(
     </Page>
   );
 }
-function renderReorderPage(
-  typedSetting: TypedSettingProps<ProjectSettings>
+
+function renderResetPage(
+  typedSetting: TypedSettingProps<Settings>
 ): JSX.Element {
+  console.log("rendering reset page");
+  var pageState = typedSetting.get().settingsState.resetPageState;
+  var name = typedSetting.get().projects.get(pageState.projId).name;
   return (
     <Page>
-      <Text>TODO</Text>
+      <Section title={<Text>Reset Project {name}</Text>}>
+        <Text>
+          This will reset all counters in this project to zero; it cannot be
+          undone.
+        </Text>
+        <Text>It will only work if the watch is connected to this device.</Text>
+        <Button
+          label="Reset"
+          onClick={(e) => {
+            typedSetting.update({
+              projectOperation: {
+                projId: pageState.projId,
+                operation: Operation.ResetCounters,
+              },
+            });
+            typedSetting.getToUpdate().settingsState.currentPage =
+              SettingsPage.Edit;
+            typedSetting.commit();
+            typedSetting.update({ projectOperation: undefined });
+          }}
+        />
+        <Button
+          label="Cancel"
+          onClick={(e) => {
+            typedSetting.getToUpdate().settingsState.currentPage =
+              SettingsPage.Edit;
+            typedSetting.commit();
+          }}
+        />
+      </Section>
     </Page>
   );
 }
 
 function renderSettingsPage(props: SettingsComponentProps): JSX.Element {
-  const typedSetting: TypedSettingProps<ProjectSettings> =
-    new TypedSettingProps(props, {
+  const typedSetting: TypedSettingProps<Settings> = new TypedSettingProps(
+    props,
+    {
       projects: {
         packer: (v) => encodeProjectSettings(v),
         unpackInitiator: (v) => decodeProjectSettings(v),
@@ -281,7 +381,12 @@ function renderSettingsPage(props: SettingsComponentProps): JSX.Element {
         packer: (v) => encodeSettingsState(v),
         unpackInitiator: (v) => decodeSettingsState(v),
       },
-    });
+      timeFormat: {
+        unpackInitiator: (v) =>
+          v === undefined ? DEFAULT_TIME_FORMAT : JSON.parse(v),
+      },
+    }
+  );
 
   var settingsState = typedSetting.get().settingsState;
   var pageType = settingsState.currentPage;
@@ -293,10 +398,10 @@ function renderSettingsPage(props: SettingsComponentProps): JSX.Element {
     return renderAddPage(typedSetting);
   } else if (pageType === SettingsPage.Edit) {
     return renderEditPage(typedSetting);
+  } else if (pageType === SettingsPage.Reset) {
+    return renderDeletePage(typedSetting);
   } else if (pageType === SettingsPage.Delete) {
     return renderDeletePage(typedSetting);
-  } else if (pageType === SettingsPage.Reorder) {
-    return renderReorderPage(typedSetting);
   } else {
     typedSetting.update({
       settingsState: { pageState: defaultSettingsState() },

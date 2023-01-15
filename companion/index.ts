@@ -1,8 +1,7 @@
 import { settingsStorage } from "settings";
 import * as messaging from "messaging";
 import { me as companion } from "companion";
-import { Operation, SettingMessage } from "../common/messages";
-import { ProjectSettings } from "../common/settingsTypes";
+import { SettingMessage } from "../common/messages";
 
 // Settings have been changed
 settingsStorage.addEventListener("change", (evt) => {

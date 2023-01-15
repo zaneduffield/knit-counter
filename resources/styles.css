@@ -24,7 +24,7 @@ text {
 }
 
 #project-name {
-  text-anchor: left;
+  text-anchor: start;
 }
 
 .counter-text {

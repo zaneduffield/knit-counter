@@ -1,6 +1,13 @@
+import { ProjectOperation } from "./messages";
+
 export const INIT_PROJ_ID = 0;
 export const INIT_PROJ_NAME = "My Project";
 export const INIT_REPEAT_LEN = 10;
+export const DEFAULT_TIME_FORMAT: TimeFormat = {
+  showTime: true,
+  showSeconds: false,
+  is24hourTime: false,
+};
 
 export interface ProjectConfig {
   id: number;
@@ -8,12 +15,18 @@ export interface ProjectConfig {
   repeatLength: number;
 }
 
+export interface TimeFormat {
+  showTime: boolean;
+  showSeconds: boolean;
+  is24hourTime: boolean;
+}
+
 export enum SettingsPage {
   Main,
   Add,
   Edit,
+  Reset,
   Delete,
-  Reorder,
 }
 
 export interface SettingsState {
@@ -22,6 +35,7 @@ export interface SettingsState {
   mainPageState?: MainPageState;
   projectDetailsState?: ProjectDetailsPageState;
   deletePageState?: DeletePageState;
+  resetPageState?: ResetPageState;
   reorderPageState?: ReorderPageState;
 }
 
@@ -36,7 +50,10 @@ export class ProjectDetailsPageState extends SettingsPageState {
 
 export class DeletePageState extends SettingsPageState {
   projId: number;
-  needsConfirmation: boolean;
+}
+
+export class ResetPageState extends SettingsPageState {
+  projId: number;
 }
 
 export class ReorderPageState extends SettingsPageState {
@@ -78,6 +95,7 @@ export function decodeSettingsState(s: string | undefined): SettingsState {
   console.log("decoding settings state");
   const state: SettingsState = JSON.parse(s);
   state.mainPageState = decodeInstance(state.mainPageState, MainPageState);
+  state.resetPageState = decodeInstance(state.resetPageState, ResetPageState);
   state.projectDetailsState = decodeInstance(
     state.projectDetailsState,
     ProjectDetailsPageState
@@ -108,10 +126,12 @@ export function decodeProjectSettings(s: string | undefined): Projects {
   );
 }
 
-export interface ProjectSettings {
+export interface Settings {
   settingsState: SettingsState;
+  timeFormat: TimeFormat;
   nextId: number;
   projects: Map<number, ProjectConfig>;
+  projectOperation?: ProjectOperation;
 }
 
 export function isProjectSettings(o: any): boolean {

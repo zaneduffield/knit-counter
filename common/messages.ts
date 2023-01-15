@@ -8,14 +8,14 @@ export function isSettingsMessage(o: any): boolean {
 }
 
 export enum Operation {
-    Reset, Delete, Create
+    ResetCounters
 }
 
 export interface ProjectOperation {
-    project: string | null;
+    projId: number;
     operation: Operation
 }
 
 export function isProjectOperation(o: any): boolean {
-    return "project" in o && "operation" in o
+    return "projId" in o && "operation" in o
 }
