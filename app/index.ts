@@ -375,7 +375,10 @@ async function receiveSettingsMessage(obj: SettingMessage) {
         proj.name = incomingProject.name;
         proj.repeatLength = incomingProject.repeatLength;
       } else {
-        var proj = initProject(incomingProject.name, incomingProject.repeatLength);
+        var proj = initProject(
+          incomingProject.name,
+          incomingProject.repeatLength
+        );
         settings.projects.push([id, proj]);
       }
     });
