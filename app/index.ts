@@ -37,7 +37,7 @@ interface Project {
 function initProject(name: string, repeatLen: number): Project {
   return {
     name: name,
-    repeatLength: INIT_REPEAT_LEN,
+    repeatLength: repeatLen,
     globalCount: 0,
     repeatCount: 0,
     selectedBubble: Bubble.Global,
