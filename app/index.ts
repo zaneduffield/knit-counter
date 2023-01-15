@@ -426,8 +426,10 @@ async function receiveSettingsMessage(obj: SettingMessage) {
   } else if (key === "timeFormat") {
     settings.timeFormat = JSON.parse(value);
     setupClock();
+  } else if (key === "projectOperation") {
+    receiveProjectOperation(JSON.parse(value));
   } else {
-    console.warn(`ignoring settings message with key ${key}`);
+    console.warn(`ignoring unknown settings message with key ${key}`);
   }
 }
 
@@ -437,6 +439,8 @@ function receiveProjectOperation(op: ProjectOperation) {
     var proj = getProject(op.projId);
     proj.globalCount = 0;
     proj.repeatCount = 0;
+  } else {
+    console.warn(`ignoring unknown project operation: ${op.operation}`);
   }
 }
 

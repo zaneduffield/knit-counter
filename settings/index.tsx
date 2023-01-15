@@ -15,6 +15,7 @@ import {
   decodeProjectSettings,
   defaultSettingsState,
   DEFAULT_TIME_FORMAT,
+  ResetPageState,
 } from "../common/settingsTypes";
 import {
   TypedSettingProps,
@@ -264,11 +265,10 @@ function renderEditPage(
           label="Reset"
           onClick={(e) => {
             typedSetting.getToUpdate().settingsState.currentPage =
-              SettingsPage.Delete;
-            var deleteState = new DeletePageState();
-            deleteState.projId = pageState.projId;
-            typedSetting.getToUpdate().settingsState.deletePageState =
-              deleteState;
+              SettingsPage.Reset;
+            var newState = new ResetPageState();
+            newState.projId = pageState.projId;
+            typedSetting.getToUpdate().settingsState.resetPageState = newState;
             typedSetting.commit();
           }}
         />
@@ -348,7 +348,7 @@ function renderResetPage(
               },
             });
             typedSetting.getToUpdate().settingsState.currentPage =
-              SettingsPage.Edit;
+              SettingsPage.Main;
             typedSetting.commit();
             typedSetting.update({ projectOperation: undefined });
           }}
@@ -399,7 +399,7 @@ function renderSettingsPage(props: SettingsComponentProps): JSX.Element {
   } else if (pageType === SettingsPage.Edit) {
     return renderEditPage(typedSetting);
   } else if (pageType === SettingsPage.Reset) {
-    return renderDeletePage(typedSetting);
+    return renderResetPage(typedSetting);
   } else if (pageType === SettingsPage.Delete) {
     return renderDeletePage(typedSetting);
   } else {
