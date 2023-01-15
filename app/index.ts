@@ -167,10 +167,14 @@ async function tryLoadProjectById(i: number) {
   }
 }
 
+function pad2dig(n: number) {
+  return n.toString().padStart(2, "0");
+}
+
 function updateTime(date: Date) {
   const elm = document.getElementById("time");
   if (elm) {
-    const timeStr = `${date.getHours()}:${date.getMinutes()}`;
+    const timeStr = `${pad2dig(date.getHours())}:${pad2dig(date.getMinutes())}`;
     elm.text = timeStr;
 
     console.log(new Date().toLocaleTimeString());
