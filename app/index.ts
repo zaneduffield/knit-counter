@@ -269,7 +269,6 @@ function redrawSettings() {
     getTileInfo: (index: number) => {
       return {
         type: "list-pool",
-        // value: settings.projects[index]?.[1].name,
         value: "Item",
         index: index,
       };
