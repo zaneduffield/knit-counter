@@ -106,8 +106,8 @@ function renderAddPage(
       <Section title={<Text>Add Project</Text>}>
         {projectNameInput(pageState, typedSetting)}
         {repeatLengthInput(pageState, typedSetting)}
-        {cancelButton(typedSetting)}
         {saveNewProject(typedSetting, pageState)}
+        {cancelButton(typedSetting)}
       </Section>
     </Page>
   );
@@ -205,10 +205,12 @@ function renderEditPage(
       <Section title={<Text>Edit Project</Text>}>
         {projectNameInput(pageState, typedSetting)}
         {repeatLengthInput(pageState, typedSetting)}
-        {cancelButton(typedSetting)}
         {saveProjectEdit(typedSetting, pageState)}
+        {cancelButton(typedSetting)}
+      </Section>
+      <Section title={<Text>Delete Project</Text>}>
         <Button
-          label="Delete Project"
+          label="Delete"
           onClick={(e) => {
             typedSetting.getToUpdate().settingsState.currentPage =
               SettingsPage.Delete;
@@ -233,13 +235,21 @@ function renderDeletePage(
   return (
     <Page>
       <Section title={<Text>Delete Project {name}</Text>}>
-        <Text>This cannot be reversed</Text>
+        <Text>This cannot be undone</Text>
         <Button
           label="Delete"
           onClick={(e) => {
             typedSetting.getToUpdate().projects.delete(pageState.projId);
             typedSetting.getToUpdate().settingsState.currentPage =
               SettingsPage.Main;
+            typedSetting.commit();
+          }}
+        />
+        <Button
+          label="Cancel"
+          onClick={(e) => {
+            typedSetting.getToUpdate().settingsState.currentPage =
+              SettingsPage.Edit;
             typedSetting.commit();
           }}
         />
