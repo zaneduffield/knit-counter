@@ -17,6 +17,7 @@ import {
   ProjectSettings,
 } from "../common/settingsTypes";
 import { me as appbit } from "appbit";
+import clock from "clock";
 
 interface Project {
   name: string;
@@ -64,7 +65,6 @@ var project: Project;
 const SETTINGS_FNAME = "settings.json";
 
 var background: Element;
-var projectId: Element;
 var projectName: Element;
 
 var plusButton: Element;
@@ -169,6 +169,17 @@ async function tryLoadProjectById(i: number) {
   }
 }
 
+function updateTime(date: Date) {
+  const elm = document.getElementById("time");
+  if (elm) {
+    const timeStr = `${date.getHours()}:${date.getMinutes()}`;
+    elm.text = timeStr;
+
+    console.log(new Date().toLocaleTimeString());
+    console.log(date.toTimeString());
+  }
+}
+
 async function loadProject([id, proj]: [number, Project]) {
   settings.projId = id;
   project = proj;
@@ -176,8 +187,11 @@ async function loadProject([id, proj]: [number, Project]) {
   await document.location.replace("./resources/index.view");
 
   background = document.getElementById("background");
-  projectId = document.getElementById("project-id");
   projectName = document.getElementById("project-name");
+
+  clock.granularity = "minutes";
+  updateTime(new Date());
+  clock.ontick = (e) => updateTime(e.date);
 
   plusButton = document.getElementById("plus-button");
   subButton = document.getElementById("sub-button");
@@ -329,7 +343,6 @@ function redrawProject() {
     repeatCountElm.text = "";
   }
 
-  projectId.text = settings.projId.toString();
   projectName.text = project.name;
 
   globalOutlineElm.style.visibility = "hidden";

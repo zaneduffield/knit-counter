@@ -1,7 +1,7 @@
 <svg>
     <rect id="background" fill="none" width="100%" height="100%" class="clickable" />
 
-    <text id="project-name" font-size="20" x="14%" y="8%" />
+    <text id="project-name" font-size="20" x="20%" y="6%" />
 
     <g transform="translate(30%, 33%)">
         <circle id="outline-repeat-progress-bubble" r="24%" class="outline-bubble" />
@@ -21,7 +21,7 @@
         <text id="repeat-count" font-size="40" class="counter-text" />
     </g>
 
-    <text id="project-id" x="92%" y="69%" font-size="25" />
+    <text id="time" x="5%" y="69%" font-size="25" />
 
     <use id="sub-button" href="#text-button" class="text-button bottom left secondary application-fill" />
     <use id="plus-button" href="#text-button" class="text-button bottom right application-fill" />
