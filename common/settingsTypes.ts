@@ -1,4 +1,6 @@
 export const INIT_PROJ_ID = 0;
+export const INIT_PROJ_NAME = "My Project";
+export const INIT_REPEAT_LEN = 10;
 
 export interface ProjectConfig {
   id: number;
@@ -101,7 +103,7 @@ export function encodeProjectSettings(projects: Projects): string {
 export function decodeProjectSettings(s: string | undefined): Projects {
   return new Map(
     s === undefined
-      ? [[INIT_PROJ_ID, defaultProject(INIT_PROJ_ID)]]
+      ? [[INIT_PROJ_ID, defaultProject(INIT_PROJ_ID, INIT_PROJ_NAME)]]
       : JSON.parse(s)
   );
 }
@@ -116,6 +118,6 @@ export function isProjectSettings(o: any): boolean {
   return "nextId" in o && "projects" in o;
 }
 
-export function defaultProject(id: number): ProjectConfig {
-  return { id: id, name: `Project ${id}`, repeatLength: 10 };
+export function defaultProject(id: number, name: string): ProjectConfig {
+  return { id: id, name: name, repeatLength: 10 };
 }

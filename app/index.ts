@@ -1,20 +1,18 @@
 import document from "document";
 import { display } from "display";
 import * as messaging from "messaging";
-import { readFileSync, writeFileSync, existsSync, unlinkSync } from "fs";
+import { readFileSync, writeFileSync, existsSync } from "fs";
 import {
   isProjectOperation,
   isSettingsMessage,
-  Operation,
   ProjectOperation,
   SettingMessage,
 } from "../common/messages";
 import {
-  decodeProjectSettings,
-  defaultProject,
   INIT_PROJ_ID,
+  INIT_PROJ_NAME,
+  INIT_REPEAT_LEN,
   ProjectConfig,
-  ProjectSettings,
 } from "../common/settingsTypes";
 import { me as appbit } from "appbit";
 import clock from "clock";
@@ -32,10 +30,10 @@ interface Project {
   buttonSecondaryColour?: string;
 }
 
-function initProject(name: string): Project {
+function initProject(name: string, repeatLen: number): Project {
   return {
     name: name,
-    repeatLength: 8,
+    repeatLength: INIT_REPEAT_LEN,
     globalCount: 0,
     repeatCount: 0,
     selectedBubble: Bubble.Global,
@@ -57,7 +55,7 @@ interface Settings {
 
 var settings: Settings = {
   projId: INIT_PROJ_ID,
-  projects: [[INIT_PROJ_ID, initProject("my project")]],
+  projects: [[INIT_PROJ_ID, initProject(INIT_PROJ_NAME, INIT_REPEAT_LEN)]],
 };
 
 var project: Project;
@@ -373,9 +371,8 @@ async function receiveSettingsMessage(obj: SettingMessage) {
         proj.name = incomingProject.name;
         proj.repeatLength = incomingProject.repeatLength;
       } else {
-        var proj = initProject(incomingProject.name);
+        var proj = initProject(incomingProject.name, incomingProject.repeatLength);
         settings.projects.push([id, proj]);
-        proj.repeatLength = incomingProject.repeatLength;
       }
     });
 
