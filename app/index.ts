@@ -104,8 +104,13 @@ function getCurProject(): Project | undefined {
 }
 
 function getProject(id: number): Project | undefined {
-  // jerryscript doesn't have 'array.find'
-  return settings.projects.filter(([n, _]) => n === id)[0]?.[1];
+  for (let i = settings.projects.length; i--; ) {
+    let proj = settings.projects[i];
+    if (proj[0] === id) {
+      return proj[1];
+    }
+  }
+  return undefined;
 }
 
 function loadSettings() {
@@ -114,7 +119,7 @@ function loadSettings() {
   project = getCurProject();
 }
 
-function refresh() {
+async function refresh() {
   loadSettings();
   redraw();
 }
@@ -282,20 +287,8 @@ async function loadProject([id, proj]: [number, Project]) {
 
 async function loadProjectSelectionView() {
   await document.location.replace("./resources/settings/settings.view");
-  redrawSettings();
-}
 
-function redrawSettings() {
   let list = document.getElementById("myList");
-  let help = document.getElementById("no-project-help");
-  if (settings.projects.length === 0) {
-    help.style.display = "inline";
-    list.style.display = "none";
-    return;
-  }
-
-  help.style.display = "none";
-  list.style.display = "inline";
 
   // @ts-ignore
   list.delegate = {
@@ -316,6 +309,21 @@ function redrawSettings() {
       }
     },
   };
+
+  redrawSettings();
+}
+
+function redrawSettings() {
+  let list = document.getElementById("myList");
+  let help = document.getElementById("no-project-help");
+  if (settings.projects.length === 0) {
+    help.style.display = "inline";
+    list.style.display = "none";
+    return;
+  }
+
+  help.style.display = "none";
+  list.style.display = "inline";
 
   // length must be set AFTER delegate
   // @ts-ignore
@@ -393,45 +401,6 @@ function redrawProject() {
   }
 }
 
-async function receiveSettingsMessage(obj: SettingMessage) {
-  var key = obj.key;
-  var value = obj.value;
-  console.log(`recieved data over socket: key='${key}', value='${value}'`);
-
-  if (key === "projects") {
-    var projectSettings: [number, ProjectConfig][] = JSON.parse(value);
-    projectSettings.forEach(([id, incomingProject]) => {
-      var proj = getProject(id);
-      if (proj !== undefined) {
-        proj.name = incomingProject.name;
-        proj.repeatLength = incomingProject.repeatLength;
-      } else {
-        var proj = initProject(
-          incomingProject.name,
-          incomingProject.repeatLength
-        );
-        settings.projects.push([id, proj]);
-      }
-    });
-
-    settings.projects = settings.projects.filter(
-      ([id, _]) => projectSettings.filter(([id2, _]) => id2 === id).length > 0
-    );
-
-    if (getCurProject() === undefined) {
-      await loadProjectSelectionView();
-    } else {
-      redraw();
-    }
-  } else if (key === "timeFormat") {
-    settings.timeFormat = JSON.parse(value);
-    setupClock();
-  } else if (key === "projectOperation") {
-    receiveProjectOperation(JSON.parse(value));
-  } else {
-    console.warn(`ignoring unknown settings message with key ${key}`);
-  }
-}
 
 function receiveProjectOperation(op: ProjectOperation) {
   if (op.operation === Operation.ResetCounters) {
@@ -444,12 +413,69 @@ function receiveProjectOperation(op: ProjectOperation) {
   }
 }
 
-// need to generalise this to work with the entire settings object
-async function receiveMessageItem(o) {
-  if (isSettingsMessage(o)) {
-    await receiveSettingsMessage(o);
-  } else if (o.projectOperation) {
-    receiveProjectOperation(o.projectOperation);
+async function receiveMessageItem(obj) {
+  if (isSettingsMessage(obj)) {
+    // having this in a function was causing stack overflows, so I've inline-ed it.
+    var key = obj.key;
+    var value = obj.value;
+    console.log(`recieved data over socket: key='${key}', value='${value}'`);
+
+    if (key === "projects") {
+      var projectSettings: [number, ProjectConfig][] = JSON.parse(value);
+      for (let i = projectSettings.length; i--; ) {
+        let [id, incomingProject] = projectSettings[i];
+        var proj = getProject(id);
+        if (proj !== undefined) {
+          proj.name = incomingProject.name;
+          proj.repeatLength = incomingProject.repeatLength;
+        } else {
+          var proj = initProject(
+            incomingProject.name,
+            incomingProject.repeatLength
+          );
+          settings.projects.push([id, proj]);
+        }
+      }
+      console.log("finished adding/editing projects");
+
+      var removed = 0;
+      for (let i = settings.projects.length; i--; ) {
+        var found = false;
+        for (let j = projectSettings.length; j--; ) {
+          if (projectSettings[j][0] === settings.projects[i][0]) {
+            found = true;
+            break;
+          }
+        }
+
+        if (!found) {
+          // swap remove with last elm
+          var lastIdx = settings.projects.length - 1 - removed;
+          var tmp = settings.projects[i];
+          // could also try destructured assignment
+          settings.projects[i] = settings.projects[lastIdx];
+          settings.projects[lastIdx] = tmp;
+          removed++;
+        }
+      }
+      settings.projects.length -= removed;
+      console.log("finished deleting projects");
+
+      if (getCurProject() === undefined) {
+        await loadProjectSelectionView();
+      } else {
+        redraw();
+      }
+    } else if (key === "timeFormat") {
+      settings.timeFormat = JSON.parse(value);
+      setupClock();
+    } else if (key === "projectOperation") {
+      receiveProjectOperation(JSON.parse(value));
+    } else {
+      console.warn(`ignoring unknown settings message with key ${key}`);
+    }
+  } else if (obj.projectOperation) {
+    receiveProjectOperation(obj.projectOperation);
   }
 }
 
