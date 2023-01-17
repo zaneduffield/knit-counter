@@ -225,10 +225,12 @@ function setupClock() {
 }
 
 async function loadProject([id, proj]: [number, Project]) {
+  console.log("loading project");
   settings.projId = id;
   project = proj;
 
   await document.location.replace("./resources/index.view");
+  console.log("loaded index.view");
 
   background = document.getElementById("background");
   projectName = document.getElementById("project-name");
@@ -290,6 +292,7 @@ async function loadProject([id, proj]: [number, Project]) {
 }
 
 async function loadProjectSelectionView() {
+  console.log("loading project selection view");
   await document.location.replace("./resources/settings/settings.view");
 
   let list = document.getElementById("myList");
@@ -362,6 +365,7 @@ function incrementEvent(i: number): (e: MouseEvent) => void {
 }
 
 function redraw() {
+  console.log("starting redraw");
   console.log(`current view: ${document.location.pathname}`);
   if (document.location.pathname === "./resources/settings/settings.view") {
     redrawSettings();
@@ -372,7 +376,7 @@ function redraw() {
 
 function redrawProject() {
   console.log(
-    `updating display with global count ${project.globalCount} and repeat length ${project.repeatLength}`
+    `redrawing project with global count ${project.globalCount} and repeat length ${project.repeatLength}`
   );
   globalCounterElm.text = project.globalCount.toString();
   if (project.repeatLength > 0) {
@@ -404,7 +408,6 @@ function redrawProject() {
     repeatProgressOutlineElm.style.visibility = "visible";
   }
 }
-
 
 function receiveProjectOperation(op: ProjectOperation) {
   if (op.operation === Operation.ResetCounters) {
