@@ -181,9 +181,15 @@ function pad2dig(n: number) {
   return n.toString().padStart(2, "0");
 }
 
-function updateTime(date: Date, elm: Element) {
+function getTimeElement(): Element {
+  return document.getElementById("time");
+}
+
+function updateTime(date: Date) {
   console.log("updating time");
+  const elm = getTimeElement();
   if (elm) {
+    elm.style.display = "inline";
     const timeFormat = settings.timeFormat ?? DEFAULT_TIME_FORMAT;
     const mins = pad2dig(date.getMinutes());
     const hours = timeFormat.is24hourTime
@@ -207,13 +213,11 @@ function updateTime(date: Date, elm: Element) {
 function setupClock() {
   console.log("configuring clock");
 
-  const elm = document.getElementById("time");
+  const elm = getTimeElement();
   if (settings.timeFormat.showTime) {
-    elm.style.display = "inline";
-
     clock.granularity = settings.timeFormat.showSeconds ? "seconds" : "minutes";
-    updateTime(new Date(), elm);
-    clock.ontick = (e) => updateTime(e.date, elm);
+    updateTime(new Date());
+    clock.ontick = (e) => updateTime(e.date);
   } else {
     elm.style.display = "none";
     clock.ontick = undefined;
