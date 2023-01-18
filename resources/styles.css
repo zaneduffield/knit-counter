@@ -49,6 +49,10 @@ text {
   visibility: hidden;
 }
 
+arc {
+  fill: fb-red;
+}
+
 .text-button #text {
   font-size: 50;
 }

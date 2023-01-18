@@ -79,8 +79,12 @@ var repeatProgressElm: Element;
 var repeatCountElm: Element;
 
 var globalBubbleElm: Element;
+
 var repeatProgressBubbleElm: Element;
+var repeatProgressArc: ArcElement;
+
 var repeatCountBubbleElm: Element;
+var repeatCountProgressArc: ArcElement;
 
 var globalOutlineElm: Element;
 var repeatProgressOutlineElm: Element;
@@ -248,6 +252,11 @@ async function loadProject([id, proj]: [number, Project]) {
   repeatProgressBubbleElm = document.getElementById("repeat-progress-bubble");
   repeatCountBubbleElm = document.getElementById("repeat-bubble");
 
+  var arcs = document.getElementsByTagName("arc");
+  // TODO don't use the 'functional' JS on a low-powered device
+  repeatCountProgressArc = arcs.filter((a) => a.id === "arc-count")[0];
+  repeatProgressArc = arcs.filter((a) => a.id === "arc-progress")[0];
+
   globalOutlineElm = document.getElementById("outline-global-bubble");
   repeatProgressOutlineElm = document.getElementById(
     "outline-repeat-progress-bubble"
@@ -380,15 +389,20 @@ function redrawProject() {
   );
   globalCounterElm.text = project.globalCount.toString();
   if (project.repeatLength > 0) {
-    repeatProgressElm.text = `${project.repeatCount % project.repeatLength}/${
-      project.repeatLength
-    }`;
-    repeatCountElm.text = Math.floor(
-      project.repeatCount / project.repeatLength
-    ).toString();
+    var repeatPos = project.repeatCount % project.repeatLength;
+    var numRepeats = Math.floor(project.repeatCount / project.repeatLength);
+
+    repeatProgressElm.text = `${repeatPos}/${project.repeatLength}`;
+    repeatCountElm.text = numRepeats.toString();
+    repeatProgressArc.sweepAngle = (repeatPos / project.repeatLength) * 360;
+    // TODO make the 'goal' number of repeats configurable!
+    repeatCountProgressArc.sweepAngle = (numRepeats / 10) * 360;
   } else {
     repeatProgressElm.text = "";
     repeatCountElm.text = "";
+
+    repeatCountProgressArc.sweepAngle = 0;
+    repeatProgressArc.sweepAngle = 0;
   }
 
   projectName.text = project.name;
