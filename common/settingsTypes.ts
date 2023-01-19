@@ -13,6 +13,7 @@ export interface ProjectConfig {
   id: number;
   name: string;
   repeatLength: number;
+  repeatGoal?: number;
 }
 
 export interface TimeFormat {

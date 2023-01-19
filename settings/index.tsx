@@ -156,8 +156,7 @@ function renderAddPage(typedSetting: TypedSettingProps<Settings>): JSX.Element {
   return (
     <Page>
       <Section title={<Text>Add Project</Text>}>
-        {projectNameInput(pageState, typedSetting)}
-        {repeatLengthInput(pageState, typedSetting)}
+        {projectInputs(pageState, typedSetting)}
         {saveNewProject(typedSetting, pageState)}
         {cancelButton(typedSetting)}
       </Section>
@@ -185,6 +184,57 @@ function repeatLengthInput(
       type="number"
     />
   );
+}
+
+function repeatGoalInput(
+  pageState: ProjectDetailsPageState,
+  typedSetting: TypedSettingProps<Settings>
+): JSX.Element[] {
+  var input =
+    pageState.newProjectConfig.repeatGoal === undefined
+      ? []
+      : [
+          <TextInput
+            label="Repeat Goal"
+            value={`${pageState.newProjectConfig.repeatGoal}`}
+            onChange={(v) => {
+              var newState =
+                typedSetting.getToUpdate().settingsState.projectDetailsState;
+              newState.newProjectConfig.repeatGoal = parseInt(
+                // @ts-ignore; I don't know why the value passed here is actually an Object and not a string.
+                v.name
+              );
+              typedSetting.commit();
+            }}
+            type="number"
+          />,
+        ];
+
+  return [
+    <Toggle
+      label="Enable Repeat Goal"
+      /* @ts-ignore the TS typing package is a little outdated */
+      value={pageState.newProjectConfig.repeatGoal !== undefined}
+      onChange={(v) => {
+        var newState =
+          typedSetting.getToUpdate().settingsState.projectDetailsState;
+        newState.newProjectConfig.repeatGoal = v ? 0 : undefined;
+        typedSetting.commit();
+      }}
+    />,
+    ...input,
+  ];
+}
+
+function projectInputs(
+  pageState: ProjectDetailsPageState,
+  typedSetting: TypedSettingProps<Settings>
+): JSX.Element[] {
+  return [
+    projectNameInput(pageState, typedSetting),
+    repeatLengthInput(pageState, typedSetting),
+    ...repeatGoalInput(pageState, typedSetting),
+  ];
 }
 
 function projectNameInput(
@@ -255,8 +305,7 @@ function renderEditPage(
   return (
     <Page>
       <Section title={<Text>Edit Project</Text>}>
-        {projectNameInput(pageState, typedSetting)}
-        {repeatLengthInput(pageState, typedSetting)}
+        {projectInputs(pageState, typedSetting)}
         {saveProjectEdit(typedSetting, pageState)}
         {cancelButton(typedSetting)}
       </Section>

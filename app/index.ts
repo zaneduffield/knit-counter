@@ -25,7 +25,8 @@ interface Project {
   name: string;
   globalCount: number;
   repeatCount: number;
-  repeatLength: number | null;
+  repeatLength: number;
+  repeatGoal?: number;
   selectedBubble: Bubble;
 
   circleColour?: string;
@@ -34,12 +35,17 @@ interface Project {
   buttonSecondaryColour?: string;
 }
 
-function initProject(name: string, repeatLen: number): Project {
+function initProject(
+  name: string,
+  repeatLen: number,
+  repeatGoal: number | undefined
+): Project {
   return {
     name: name,
     repeatLength: repeatLen,
     globalCount: 0,
     repeatCount: 0,
+    repeatGoal: repeatGoal,
     selectedBubble: Bubble.Global,
   };
 }
@@ -61,7 +67,9 @@ interface Settings {
 var settings: Settings = {
   timeFormat: DEFAULT_TIME_FORMAT,
   projId: INIT_PROJ_ID,
-  projects: [[INIT_PROJ_ID, initProject(INIT_PROJ_NAME, INIT_REPEAT_LEN)]],
+  projects: [
+    [INIT_PROJ_ID, initProject(INIT_PROJ_NAME, INIT_REPEAT_LEN, undefined)],
+  ],
 };
 
 var project: Project;
@@ -396,7 +404,9 @@ function redrawProject() {
     repeatCountElm.text = numRepeats.toString();
     repeatProgressArc.sweepAngle = (repeatPos / project.repeatLength) * 360;
     // TODO make the 'goal' number of repeats configurable!
-    repeatCountProgressArc.sweepAngle = (numRepeats / 10) * 360;
+    repeatCountProgressArc.sweepAngle = project.repeatGoal
+      ? (numRepeats / project.repeatGoal) * 360
+      : 0;
   } else {
     repeatProgressElm.text = "";
     repeatCountElm.text = "";
@@ -449,10 +459,12 @@ async function receiveMessageItem(obj) {
         if (proj !== undefined) {
           proj.name = incomingProject.name;
           proj.repeatLength = incomingProject.repeatLength;
+          proj.repeatGoal = incomingProject.repeatGoal;
         } else {
           var proj = initProject(
             incomingProject.name,
-            incomingProject.repeatLength
+            incomingProject.repeatLength,
+            incomingProject.repeatGoal
           );
           settings.projects.push([id, proj]);
         }
