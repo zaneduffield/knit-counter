@@ -42,7 +42,7 @@ function initProject(
   name: string,
   repeatLen: number,
   repeatGoal: number | undefined,
-  colour: string,
+  colour: string
 ): Project {
   return {
     name: name,
@@ -73,7 +73,10 @@ var settings: Settings = {
   timeFormat: DEFAULT_TIME_FORMAT,
   projId: INIT_PROJ_ID,
   projects: [
-    [INIT_PROJ_ID, initProject(INIT_PROJ_NAME, INIT_REPEAT_LEN, undefined, INIT_PROJ_COLOUR)],
+    [
+      INIT_PROJ_ID,
+      initProject(INIT_PROJ_NAME, INIT_REPEAT_LEN, undefined, INIT_PROJ_COLOUR),
+    ],
   ],
 };
 
@@ -347,7 +350,6 @@ async function loadProjectSelectionView() {
     },
     configureTile: (tile, info) => {
       const index: number = info.index;
-      console.log(`Item: ${info.index}`);
       if (info.type == "list-pool") {
         tile.getElementById("text").text = settings.projects[index]?.[1].name;
         let touch = tile.getElementById("touch");
@@ -454,7 +456,7 @@ function redrawProject() {
     repeatProgressOutlineElm.style.visibility = "visible";
   }
 
-  applicationFillElms.forEach((e) => e.style.fill = project.colour)
+  applicationFillElms.forEach((e) => (e.style.fill = project.colour));
 }
 
 function receiveProjectOperation(op: ProjectOperation) {
@@ -541,7 +543,7 @@ async function receiveMessageItem(obj) {
 
 async function receiveMessage(evt: messaging.MessageEvent) {
   if (evt && evt.data) {
-      await receiveMessageItem(evt.data);
+    await receiveMessageItem(evt.data);
   }
 }
 

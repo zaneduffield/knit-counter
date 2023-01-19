@@ -56,7 +56,7 @@ messaging.peerSocket.addEventListener("message", (evt) => {
   ) {
     syncAllSettings();
   } else {
-    console.log("Ignoring message.")
+    console.log("Ignoring message.");
   }
 });
 
