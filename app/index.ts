@@ -8,6 +8,7 @@ import {
   Operation,
   ProjectOperation,
   SettingMessage,
+  SOFT_RESYNC_SETTINGS_MESSAGE,
 } from "../common/messages";
 import {
   DEFAULT_TIME_FORMAT,
@@ -160,6 +161,18 @@ function setCurProjectId(i: number) {
   }
 }
 
+function sendMessage(o: any) {
+  if (messaging.peerSocket.readyState === messaging.peerSocket.OPEN) {
+    messaging.peerSocket.send(o);
+  } else {
+    console.error("No peerSocket connection");
+  }
+}
+
+function requestSoftSync() {
+  sendMessage(SOFT_RESYNC_SETTINGS_MESSAGE);
+}
+
 var y = 0;
 var x = 0;
 
@@ -175,6 +188,7 @@ function init() {
   tryLoadProjectById(settings.projId);
 
   messaging.peerSocket.addEventListener("message", receiveMessage);
+  messaging.peerSocket.addEventListener("open", requestSoftSync);
 
   display.addEventListener("change", () => {
     if (display.on) {
@@ -504,7 +518,8 @@ async function receiveMessageItem(obj) {
         }
       }
       settings.projects.length -= removed;
-      console.log("finished deleting projects");
+      console.log("finished receiving project settings");
+      saveSettings();
 
       if (getCurProject() === undefined) {
         await loadProjectSelectionView();
@@ -526,15 +541,7 @@ async function receiveMessageItem(obj) {
 
 async function receiveMessage(evt: messaging.MessageEvent) {
   if (evt && evt.data) {
-    if (evt.data instanceof Array) {
-      for (const elm in evt.data) {
-        await receiveMessageItem(elm);
-      }
-    } else if (evt.data instanceof Object) {
       await receiveMessageItem(evt.data);
-    }
-    redraw();
-    saveSettings();
   }
 }
 

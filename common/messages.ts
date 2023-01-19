@@ -1,3 +1,6 @@
+export const HARD_RESYNC_SETTINGS_MESSAGE = "hard_resync";
+export const SOFT_RESYNC_SETTINGS_MESSAGE = "soft_resync";
+
 export interface SettingMessage {
     key: string;
     value: string;
