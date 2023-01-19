@@ -6,7 +6,7 @@
 }
 
 .application-fill {
-  fill: fb-green;
+  fill: fb-lime;
 }
 
 .foreground-fill {
@@ -19,7 +19,6 @@
 
 text {
   pointer-events: none;
-  fill: fb-green;
   text-length: 32;
 }
 
@@ -45,12 +44,7 @@ text {
 
 /* TODO add z-index properties to everything rather than relying on implicit order */
 .outline-bubble {
-  fill: fb-green;
   visibility: hidden;
-}
-
-arc {
-  fill: fb-red;
 }
 
 .text-button #text {

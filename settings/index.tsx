@@ -16,6 +16,7 @@ import {
   defaultSettingsState,
   DEFAULT_TIME_FORMAT,
   ResetPageState,
+  INIT_REPEAT_LEN,
 } from "../common/settingsTypes";
 import {
   TypedSettingProps,
@@ -78,11 +79,10 @@ function renderMainPage(
             var nextId = typedSetting.get().nextId;
             detailsState.projId = nextId;
             typedSetting.update({ nextId: nextId + 1 });
-            detailsState.newProjectConfig = {
-              id: nextId,
-              name: `Project ${nextId}`,
-              repeatLength: 10,
-            };
+            detailsState.newProjectConfig = defaultProject(
+              nextId,
+              `Project ${nextId}`
+            );
             typedSetting.update({
               settingsState: {
                 currentPage: SettingsPage.Add,
@@ -232,9 +232,40 @@ function projectInputs(
 ): JSX.Element[] {
   return [
     projectNameInput(pageState, typedSetting),
+    projectColourInput(pageState, typedSetting),
     repeatLengthInput(pageState, typedSetting),
     ...repeatGoalInput(pageState, typedSetting),
   ];
+}
+
+function projectColourInput(
+  pageState: ProjectDetailsPageState,
+  typedSetting: TypedSettingProps<Settings>
+): JSX.Element {
+  return (
+    <ColorSelect
+      value={pageState.newProjectConfig.colour}
+      onSelection={(v) => {
+        typedSetting.getToUpdate().settingsState.projectDetailsState.newProjectConfig.colour =
+          v;
+        typedSetting.commit();
+      }}
+      colors={[
+        { color: "#15B9ED", value: "fb-cyan" },
+        { color: "#8080FF", value: "fb-cerulean" },
+        { color: "#C658FB", value: "fb-purple" },
+        { color: "#FF78B7", value: "fb-pink" },
+        { color: "#F1247C", value: "fb-magenta" },
+        { color: "#FA4D61", value: "fb-red" },
+        { color: "#FF752D", value: "fb-orange" },
+        { color: "#F0A500", value: "fb-yellow" },
+        { color: "#72B314", value: "fb-lime" },
+        { color: "#2CB574", value: "fb-green" },
+        { color: "#7090B5", value: "fb-slate" },
+        { color: "#A0A0A0", value: "fb-light-gray" },
+      ]}
+    />
+  );
 }
 
 function projectNameInput(

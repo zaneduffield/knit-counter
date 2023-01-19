@@ -11,6 +11,7 @@ import {
 } from "../common/messages";
 import {
   DEFAULT_TIME_FORMAT,
+  INIT_PROJ_COLOUR,
   INIT_PROJ_ID,
   INIT_PROJ_NAME,
   INIT_REPEAT_LEN,
@@ -27,6 +28,7 @@ interface Project {
   repeatCount: number;
   repeatLength: number;
   repeatGoal?: number;
+  colour: string;
   selectedBubble: Bubble;
 
   circleColour?: string;
@@ -38,7 +40,8 @@ interface Project {
 function initProject(
   name: string,
   repeatLen: number,
-  repeatGoal: number | undefined
+  repeatGoal: number | undefined,
+  colour: string,
 ): Project {
   return {
     name: name,
@@ -46,6 +49,7 @@ function initProject(
     globalCount: 0,
     repeatCount: 0,
     repeatGoal: repeatGoal,
+    colour: colour,
     selectedBubble: Bubble.Global,
   };
 }
@@ -68,7 +72,7 @@ var settings: Settings = {
   timeFormat: DEFAULT_TIME_FORMAT,
   projId: INIT_PROJ_ID,
   projects: [
-    [INIT_PROJ_ID, initProject(INIT_PROJ_NAME, INIT_REPEAT_LEN, undefined)],
+    [INIT_PROJ_ID, initProject(INIT_PROJ_NAME, INIT_REPEAT_LEN, undefined, INIT_PROJ_COLOUR)],
   ],
 };
 
@@ -97,6 +101,8 @@ var repeatCountProgressArc: ArcElement;
 var globalOutlineElm: Element;
 var repeatProgressOutlineElm: Element;
 var repeatCountOutlineElm: Element;
+
+var applicationFillElms: Element[];
 
 function stringifySettings(settings: Settings): string {
   return JSON.stringify(settings);
@@ -271,6 +277,8 @@ async function loadProject([id, proj]: [number, Project]) {
   );
   repeatCountOutlineElm = document.getElementById("outline-repeat-bubble");
 
+  applicationFillElms = document.getElementsByClassName("application-fill");
+
   plusButton.onclick = incrementEvent(1);
   subButton.onclick = incrementEvent(-1);
 
@@ -431,6 +439,8 @@ function redrawProject() {
   } else if (project.selectedBubble === Bubble.RepeatProgress) {
     repeatProgressOutlineElm.style.visibility = "visible";
   }
+
+  applicationFillElms.forEach((e) => e.style.fill = project.colour)
 }
 
 function receiveProjectOperation(op: ProjectOperation) {
@@ -460,11 +470,13 @@ async function receiveMessageItem(obj) {
           proj.name = incomingProject.name;
           proj.repeatLength = incomingProject.repeatLength;
           proj.repeatGoal = incomingProject.repeatGoal;
+          proj.colour = incomingProject.colour;
         } else {
           var proj = initProject(
             incomingProject.name,
             incomingProject.repeatLength,
-            incomingProject.repeatGoal
+            incomingProject.repeatGoal,
+            incomingProject.colour
           );
           settings.projects.push([id, proj]);
         }

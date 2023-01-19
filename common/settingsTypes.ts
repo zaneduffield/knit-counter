@@ -3,6 +3,7 @@ import { ProjectOperation } from "./messages";
 export const INIT_PROJ_ID = 0;
 export const INIT_PROJ_NAME = "My Project";
 export const INIT_REPEAT_LEN = 10;
+export const INIT_PROJ_COLOUR = "fb-lime";
 export const DEFAULT_TIME_FORMAT: TimeFormat = {
   showTime: true,
   showSeconds: false,
@@ -14,6 +15,7 @@ export interface ProjectConfig {
   name: string;
   repeatLength: number;
   repeatGoal?: number;
+  colour: string;
 }
 
 export interface TimeFormat {
@@ -140,5 +142,10 @@ export function isProjectSettings(o: any): boolean {
 }
 
 export function defaultProject(id: number, name: string): ProjectConfig {
-  return { id: id, name: name, repeatLength: 10 };
+  return {
+    id: id,
+    name: name,
+    repeatLength: INIT_REPEAT_LEN,
+    colour: INIT_PROJ_COLOUR,
+  };
 }

@@ -2,27 +2,27 @@
     <rect id="background" fill="none" width="100%" height="100%" class="clickable" />
 
     <g transform="translate(30%, 33%)">
-        <circle id="outline-repeat-progress-bubble" r="24%" class="outline-bubble" />
+        <circle id="outline-repeat-progress-bubble" r="24%" class="outline-bubble application-fill" />
         <circle id="repeat-progress-bubble" r="22%" class="counter-bubble clickable" />
-        <arc id="arc-progress" x="-22%" y="-22%" width="44%" height="44%" arc-width="5" start-angle="0" sweep-angle="0" />
-        <text id="repeat-progress-count" font-size="40" class="counter-text" />
+        <arc id="arc-progress" x="-22%" y="-22%" width="44%" height="44%" arc-width="5" start-angle="0" sweep-angle="0" class="application-fill" />
+        <text id="repeat-progress-count" font-size="40" class="counter-text application-fill" />
     </g>
 
     <g transform="translate(75%, 18%)">
-        <circle id="outline-global-bubble" r="16%" class="outline-bubble" />
+        <circle id="outline-global-bubble" r="16%" class="outline-bubble application-fill" />
         <circle id="global-bubble" r="14%" class="counter-bubble clickable" />
-        <text id="global-count" font-size="40" class="counter-text" />
+        <text id="global-count" font-size="40" class="counter-text application-fill" />
     </g>
 
     <g transform="translate(60%, 55%)">
-        <circle id="outline-repeat-bubble" r="14%" class="outline-bubble" />
+        <circle id="outline-repeat-bubble" r="14%" class="outline-bubble application-fill" />
         <circle id="repeat-bubble" r="12%" class="counter-bubble clickable" />
-        <arc id="arc-count" x="-12%" y="-12%" width="24%" height="24%" arc-width="5" start-angle="0" sweep-angle="0" />
-        <text id="repeat-count" font-size="40" class="counter-text" />
+        <arc id="arc-count" x="-12%" y="-12%" width="24%" height="24%" arc-width="5" start-angle="0" sweep-angle="0" class="application-fill" />
+        <text id="repeat-count" font-size="40" class="counter-text application-fill" />
     </g>
 
-    <text id="time" x="5%" y="69%" font-size="25" />
-    <text id="project-name" font-size="20" x="20%" y="6%" />
+    <text id="time" x="5%" y="69%" font-size="25" class="application-fill" />
+    <text id="project-name" font-size="20" x="20%" y="6%" class="application-fill" />
 
     <use id="sub-button" href="#text-button" class="text-button bottom left secondary application-fill" />
     <use id="plus-button" href="#text-button" class="text-button bottom right application-fill" />
