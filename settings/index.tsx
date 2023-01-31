@@ -81,7 +81,7 @@ function renderMainPage(
             typedSetting.update({ nextId: nextId + 1 });
             detailsState.newProjectConfig = defaultProject(
               nextId,
-              `Project ${nextId}`
+              `Project ${typedSetting.get().projects.size + 1}`
             );
             typedSetting.update({
               settingsState: {

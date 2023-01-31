@@ -1,7 +1,7 @@
 import { ProjectOperation } from "./messages";
 
 export const INIT_PROJ_ID = 0;
-export const INIT_PROJ_NAME = "My Project";
+export const INIT_PROJ_NAME = "Project 1";
 export const INIT_REPEAT_LEN = 10;
 export const INIT_PROJ_COLOUR = "fb-lime";
 export const DEFAULT_TIME_FORMAT: TimeFormat = {
