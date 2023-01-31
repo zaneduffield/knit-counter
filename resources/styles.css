@@ -7,10 +7,11 @@
 
 .application-fill {
   fill: fb-lime;
+  opacity: 1;
 }
 
-.foreground-fill {
-  fill: fb-white;
+.light-fill {
+  opacity: 0.2;
 }
 
 .background-fill {
@@ -36,10 +37,6 @@ text {
 
 .clickable {
   pointer-events: visible;
-}
-
-.counter-bubble {
-  fill: fb-white;
 }
 
 /* TODO add z-index properties to everything rather than relying on implicit order */

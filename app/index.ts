@@ -11,6 +11,7 @@ import {
   SOFT_RESYNC_SETTINGS_MESSAGE,
 } from "../common/messages";
 import {
+  DEFAULT_IS_DARK_MODE,
   DEFAULT_TIME_FORMAT,
   INIT_PROJ_COLOUR,
   INIT_PROJ_ID,
@@ -62,6 +63,7 @@ enum Bubble {
 }
 
 interface Settings {
+  isDarkMode: boolean;
   timeFormat: TimeFormat;
   projId: number;
   // maps don't work properly on this device
@@ -70,6 +72,7 @@ interface Settings {
 }
 
 var settings: Settings = {
+  isDarkMode: DEFAULT_IS_DARK_MODE,
   timeFormat: DEFAULT_TIME_FORMAT,
   projId: INIT_PROJ_ID,
   projects: [
@@ -107,6 +110,7 @@ var repeatProgressOutlineElm: Element;
 var repeatCountOutlineElm: Element;
 
 var applicationFillElms: Element[];
+var backgroundFillElms: Element[];
 
 function stringifySettings(settings: Settings): string {
   return JSON.stringify(settings);
@@ -296,6 +300,9 @@ async function loadProject([id, proj]: [number, Project]) {
 
   applicationFillElms = document.getElementsByClassName("application-fill");
 
+  backgroundFillElms = document.getElementsByClassName("my-background-fill");
+  backgroundFillElms.push(...plusButton.getElementsByClassName("background-fill"))
+
   plusButton.onclick = incrementEvent(1);
   subButton.onclick = incrementEvent(-1);
 
@@ -457,6 +464,8 @@ function redrawProject() {
   }
 
   applicationFillElms.forEach((e) => (e.style.fill = project.colour));
+  const backgroundFill = settings.isDarkMode ? "fb-black" : "fb-white";
+  backgroundFillElms.forEach((e) => (e.style.fill = backgroundFill));
 }
 
 function receiveProjectOperation(op: ProjectOperation) {
@@ -532,6 +541,9 @@ async function receiveMessageItem(obj) {
     } else if (key === "timeFormat") {
       settings.timeFormat = JSON.parse(value);
       setupClock();
+    } else if (key === "isDarkMode") {
+      settings.isDarkMode = JSON.parse(value);
+      redraw();
     } else if (key === "projectOperation") {
       receiveProjectOperation(JSON.parse(value));
     } else {

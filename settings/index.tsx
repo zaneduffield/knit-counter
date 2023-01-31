@@ -17,6 +17,7 @@ import {
   DEFAULT_TIME_FORMAT,
   ResetPageState,
   INIT_REPEAT_LEN,
+  DEFAULT_IS_DARK_MODE,
 } from "../common/settingsTypes";
 import {
   TypedSettingProps,
@@ -95,7 +96,29 @@ function renderMainPage(
       </Section>
 
       {renderTimeSettings(typedSetting)}
+      {renderGlobalColourSettings(typedSetting)}
     </Page>
+  );
+}
+
+function renderGlobalColourSettings(
+  typedSetting: TypedSettingProps<Settings>
+): JSX.Element {
+  return (
+    <Section
+      title={
+        <Text bold align="center">
+          Other Settings
+        </Text>
+      }
+    >
+      <Toggle
+        label="Dark Mode"
+        /* @ts-ignore the TS typing package is a little outdated */
+        value={typedSetting.get().isDarkMode}
+        onChange={(v) => typedSetting.update({ isDarkMode: v })}
+      />
+    </Section>
   );
 }
 
@@ -448,8 +471,10 @@ function renderResetPage(
 
 const sleepSync = (ms) => {
   const end = new Date().getTime() + ms;
-  while (new Date().getTime() < end) { /* do nothing */ }
-}
+  while (new Date().getTime() < end) {
+    /* do nothing */
+  }
+};
 
 function renderSettingsPage(props: SettingsComponentProps): JSX.Element {
   const typedSetting: TypedSettingProps<Settings> = new TypedSettingProps(
@@ -469,6 +494,10 @@ function renderSettingsPage(props: SettingsComponentProps): JSX.Element {
       timeFormat: {
         unpackInitiator: (v) =>
           v === undefined ? DEFAULT_TIME_FORMAT : JSON.parse(v),
+      },
+      isDarkMode: {
+        unpackInitiator: (v) =>
+          v === undefined ? DEFAULT_IS_DARK_MODE : JSON.parse(v),
       },
     }
   );

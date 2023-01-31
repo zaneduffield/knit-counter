@@ -1,5 +1,6 @@
 import { ProjectOperation } from "./messages";
 
+export const DEFAULT_IS_DARK_MODE = true;
 export const INIT_PROJ_ID = 0;
 export const INIT_PROJ_NAME = "Project 1";
 export const INIT_REPEAT_LEN = 10;
@@ -135,6 +136,7 @@ export interface Settings {
   nextId: number;
   projects: Map<number, ProjectConfig>;
   projectOperation?: ProjectOperation;
+  isDarkMode: boolean;
 }
 
 export function isProjectSettings(o: any): boolean {
