@@ -446,6 +446,11 @@ function renderResetPage(
   );
 }
 
+const sleepSync = (ms) => {
+  const end = new Date().getTime() + ms;
+  while (new Date().getTime() < end) { /* do nothing */ }
+}
+
 function renderSettingsPage(props: SettingsComponentProps): JSX.Element {
   const typedSetting: TypedSettingProps<Settings> = new TypedSettingProps(
     props,
@@ -471,6 +476,10 @@ function renderSettingsPage(props: SettingsComponentProps): JSX.Element {
   var settingsState = typedSetting.get().settingsState;
   var pageType = settingsState.currentPage;
   typedSetting.get().projects.entries;
+
+  // Anecdotally, having a slight lag in the settings makes it feel more 'natural'
+  // 15ms seems like a nice and subtle balance.
+  sleepSync(15);
 
   if (pageType === SettingsPage.Main) {
     return renderMainPage(typedSetting);
