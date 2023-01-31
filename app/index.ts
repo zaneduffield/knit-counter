@@ -465,6 +465,7 @@ function receiveProjectOperation(op: ProjectOperation) {
     var proj = getProject(op.projId);
     proj.globalCount = 0;
     proj.repeatCount = 0;
+    redraw();
   } else {
     console.warn(`ignoring unknown project operation: ${op.operation}`);
   }
