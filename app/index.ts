@@ -301,7 +301,9 @@ async function loadProject([id, proj]: [number, Project]) {
   applicationFillElms = document.getElementsByClassName("application-fill");
 
   backgroundFillElms = document.getElementsByClassName("my-background-fill");
-  backgroundFillElms.push(...plusButton.getElementsByClassName("background-fill"))
+  backgroundFillElms.push(
+    ...plusButton.getElementsByClassName("background-fill")
+  );
 
   plusButton.onclick = incrementEvent(1);
   subButton.onclick = incrementEvent(-1);
