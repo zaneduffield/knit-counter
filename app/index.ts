@@ -357,10 +357,15 @@ async function loadProjectSelectionView() {
         index: index,
       };
     },
-    configureTile: (tile, info) => {
+    configureTile: (tile: Element, info) => {
       const index: number = info.index;
       if (info.type == "list-pool") {
         tile.getElementById("text").text = settings.projects[index]?.[1].name;
+
+        let circle = tile.getElementsByTagName("circle")[0];
+        if (circle) {
+          circle.style.fill = settings.projects[index]?.[1].colour;
+        }
         let touch = tile.getElementById("touch");
         touch.onclick = () => loadProject(settings.projects[index]);
       }
