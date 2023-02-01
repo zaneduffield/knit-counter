@@ -387,6 +387,35 @@ function redrawSettings() {
   help.style.display = "none";
   list.style.display = "inline";
 
+  const darkCol = "#222222";
+  const lightCol = "#ffffff";
+
+  const secondaryDarkCol = "#111111";
+  const secondaryLightCol = "#eeeeee";
+
+  const bgCol = settings.isDarkMode ? darkCol : lightCol;
+  const secondaryBgCol = settings.isDarkMode
+    ? secondaryDarkCol
+    : secondaryLightCol;
+  const textCol = settings.isDarkMode ? lightCol : darkCol;
+
+  const bgElms = document.getElementsByClassName("my-background-fill");
+  for (let i = bgElms.length; i--; ) {
+    bgElms[i].style.fill = bgCol;
+  }
+
+  const secondaryBgElms = document.getElementsByClassName(
+    "secondary-background-fill"
+  );
+  for (let i = secondaryBgElms.length; i--; ) {
+    secondaryBgElms[i].style.fill = secondaryBgCol;
+  }
+
+  const textElms = document.getElementsByClassName("text-fill");
+  for (let i = textElms.length; i--; ) {
+    textElms[i].style.fill = textCol;
+  }
+
   // length must be set AFTER delegate
   // @ts-ignore
   list.length = settings.projects.length;
