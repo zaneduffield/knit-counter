@@ -90,6 +90,9 @@ const SETTINGS_FNAME = "settings.json";
 var background: Element;
 var projectName: Element;
 
+var lastSlidePos: number;
+var slideGroup: GroupElement;
+
 var plusButton: Element;
 var subButton: Element;
 
@@ -313,6 +316,7 @@ async function loadProject([id, proj]: [number, Project]) {
   repeatProgressBubbleElm.onclick = () => selectBubble(Bubble.RepeatProgress);
 
   background.onmousedown = (e) => {
+    // TODO try using requestAnimationFrame() to set the slide position more smoothly
     console.log("mouse down");
     x = e.screenX;
     y = e.screenY;
@@ -321,25 +325,39 @@ async function loadProject([id, proj]: [number, Project]) {
   background.onmouseup = async (e) => {
     console.log("mouse up");
     let xMove = e.screenX - x;
-    let yMove = e.screenY - y;
 
-    if (yMove < -60) {
-      /* swipe up */
-      console.log("swipe up");
-    } else if (yMove > 60) {
-      /* swipe down */
-      console.log("swipe down");
-    } else if (xMove < -60) {
+    if (xMove < -120) {
       /* swipe left */
       console.log("swipe left");
+      // TODO use setInterval to animate the project moving the rest of the way out of view
       await loadProjectSelectionView();
-    } else if (xMove > 60) {
-      /* swipe right */
-      console.log("swipe right");
+      return;
     }
+
+    setProjectSlide(0);
+  };
+
+  // @ts-ignore
+  slideGroup = document.getElementById("slide");
+
+  background.onmousemove = async (e) => {
+    console.log("mouse move");
+    let xMove = e.screenX - x;
+    let d = Math.min(xMove, 0);
+    if (Math.abs(d - lastSlidePos) > 40) {
+      console.log("ignoring sudden mouse movement");
+      return;
+    }
+    setProjectSlide(d);
   };
 
   redraw();
+}
+
+function setProjectSlide(d: number) {
+  console.log(`setting proj slide to ${d}`);
+  lastSlidePos = d;
+  slideGroup.groupTransform.translate.x = d;
 }
 
 async function loadProjectSelectionView() {
@@ -387,33 +405,42 @@ function redrawSettings() {
   help.style.display = "none";
   list.style.display = "inline";
 
-  const darkCol = "#222222";
-  const lightCol = "#ffffff";
+  const darkBgCol = "#000000";
+  const lightBgCol = "#ffffff";
 
-  const secondaryDarkCol = "#111111";
-  const secondaryLightCol = "#eeeeee";
+  const darkTileCol = "#222222";
+  const lightTileCol = "#eeeeee";
 
-  const bgCol = settings.isDarkMode ? darkCol : lightCol;
-  const secondaryBgCol = settings.isDarkMode
-    ? secondaryDarkCol
-    : secondaryLightCol;
-  const textCol = settings.isDarkMode ? lightCol : darkCol;
+  const secondaryDarkTileCol = "#111111";
+  const secondaryLightTileCol = "#dddddd";
 
-  const bgElms = document.getElementsByClassName("my-background-fill");
-  for (let i = bgElms.length; i--; ) {
-    bgElms[i].style.fill = bgCol;
+  const bgCol = settings.isDarkMode ? darkBgCol : lightBgCol;
+  const tileCol = settings.isDarkMode ? darkTileCol : lightTileCol;
+  const secondaryTileCol = settings.isDarkMode
+    ? secondaryDarkTileCol
+    : secondaryLightTileCol;
+  const textCol = settings.isDarkMode ? lightTileCol : darkTileCol;
+
+  var elms: Element[];
+
+  elms = document.getElementsByClassName("my-background-fill");
+  for (let i = elms.length; i--; ) {
+    elms[i].style.fill = bgCol;
   }
 
-  const secondaryBgElms = document.getElementsByClassName(
-    "secondary-background-fill"
-  );
-  for (let i = secondaryBgElms.length; i--; ) {
-    secondaryBgElms[i].style.fill = secondaryBgCol;
+  elms = document.getElementsByClassName("tile-fill");
+  for (let i = elms.length; i--; ) {
+    elms[i].style.fill = tileCol;
   }
 
-  const textElms = document.getElementsByClassName("text-fill");
-  for (let i = textElms.length; i--; ) {
-    textElms[i].style.fill = textCol;
+  elms = document.getElementsByClassName("secondary-tile-fill");
+  for (let i = elms.length; i--; ) {
+    elms[i].style.fill = secondaryTileCol;
+  }
+
+  elms = document.getElementsByClassName("text-fill");
+  for (let i = elms.length; i--; ) {
+    elms[i].style.fill = textCol;
   }
 
   // length must be set AFTER delegate
@@ -502,6 +529,8 @@ function redrawProject() {
   applicationFillElms.forEach((e) => (e.style.fill = project.colour));
   const backgroundFill = settings.isDarkMode ? "fb-black" : "fb-white";
   backgroundFillElms.forEach((e) => (e.style.fill = backgroundFill));
+
+  setProjectSlide(0);
 }
 
 function receiveProjectOperation(op: ProjectOperation) {

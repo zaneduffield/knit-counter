@@ -9,10 +9,10 @@
     <link rel="import" href="/mnt/sysassets/widgets/tile_list_widget.defs" />
 
     <symbol id="my-item" href="#tile-list-item" class="list-item" display="none">
-      <rect class="bg my-background-fill" />
+      <rect class="bg tile-fill" />
       <text id="text" class="text-fill" />
       <circle />
-      <rect class="line secondary-background-fill" />
+      <rect class="line secondary-tile-fill" />
       <rect id="touch" pointer-events="all" />
     </symbol>
 
