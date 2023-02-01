@@ -300,9 +300,13 @@ function projectNameInput(
       label="Project Name"
       value={pageState.newProjectConfig.name}
       onChange={(v) => {
-        console.log(`new project name: ${JSON.stringify(v)}`);
         // @ts-ignore; I don't know why the value passed here is actually an Object and not a string.
         var value = v.name;
+        if (value === "") {
+          console.log("not saving empty project name");
+          return;
+        }
+        console.log(`new project name: ${value}`);
         var newPageState =
           typedSetting.getToUpdate().settingsState.projectDetailsState;
         newPageState.newProjectConfig.name = value;
