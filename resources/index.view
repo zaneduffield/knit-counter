@@ -1,10 +1,12 @@
 <svg>
-    <rect id="background" width="100%" height="100%" class="clickable my-background-fill" />
-
     <g id="slide">
-        <animate attributeName="opacity" begin="load" from="0" to="1" dur="0.5" final="keep" easing="ease-out" />
+        <rect id="background" width="100%" height="100%" class="clickable my-background-fill" />
+        <animateTransform attributeType="translate" from="-100%,0%" to="0%,0%" begin="enable" dur="0.25" easing="ease-out" />
 
-        <g transform="translate(30%, 33%)">
+        <g id="repeat-progress-group" transform="translate(30%, 33%)">
+            <animateTransform attributeType="scale" from="1" to="1.05" begin="enable" dur="0.075" easing="ease-out" />
+            <animateTransform attributeType="scale" from="1.05" to="1" begin="enable+0.075" dur="0.075" easing="ease-in" />
+
             <circle id="outline-repeat-progress-bubble" r="24%" class="outline-bubble application-fill" />
             <circle id="repeat-progress-buffer-bubble" r="22%" class="my-background-fill" />
             <circle id="repeat-progress-bubble" r="22%" class="clickable application-fill light-fill" />
@@ -12,14 +14,20 @@
             <text id="repeat-progress-count" font-size="40" class="counter-text application-fill" />
         </g>
 
-        <g transform="translate(75%, 18%)">
+        <g id="global-group" transform="translate(75%, 18%)">
+            <animateTransform attributeType="scale" from="1" to="1.07" begin="enable" dur="0.075" easing="ease-out" />
+            <animateTransform attributeType="scale" from="1.07" to="1" begin="enable+0.075" dur="0.075" easing="ease-in" />
+
             <circle id="outline-global-bubble" r="16%" class="outline-bubble application-fill" />
             <circle id="global-buffer-bubble" r="14%" class="my-background-fill" />
             <circle id="global-bubble" r="14%" class="clickable application-fill light-fill" />
             <text id="global-count" font-size="40" class="counter-text application-fill" />
         </g>
 
-        <g transform="translate(60%, 55%)">
+        <g id="repeat-group" transform="translate(60%, 55%)">
+            <animateTransform attributeType="scale" from="1" to="1.08" begin="enable" dur="0.075" easing="ease-out" />
+            <animateTransform attributeType="scale" from="1.08" to="1" begin="enable+0.075" dur="0.075" easing="ease-in" />
+
             <circle id="outline-repeat-bubble" r="14%" class="outline-bubble application-fill" />
             <circle id="repeat-buffer-bubble" r="12%" class="my-background-fill" />
             <circle id="repeat-bubble" r="12%" class="clickable application-fill light-fill" />
@@ -32,5 +40,38 @@
 
         <use id="sub-button" href="#text-button" class="text-button bottom left secondary application-fill" />
         <use id="plus-button" href="#text-button" class="text-button bottom right application-fill" />
+
+        <g transform="translate(100%, 0%)">
+            <svg id="no-project-help" class="horizontal-pad">
+                <use href="#dynamic-textarea" class="p2 text-fill" y="50">
+                    <set href="#text" attributeName="text-buffer" to="No projects currently exist. Please use the settings for this app on your companion device to create a new project." />
+                </use>
+                <rect width="100%" height="2" fill="fb-cyan" y="$+6" />
+            </svg>
+
+            <use id="myList" href="#tile-list" class="horizontal-pad">
+                <var id="separator-height-bottom" value="6" />
+                <var id="reorder-enabled" value="1" />
+                <var id="virtual" value="1" />
+
+                <use id="list-pool" href="#tile-list-pool">
+                    <use id="my-pool[0]" href="#my-item" />
+                    <use id="my-pool[1]" href="#my-item" />
+                    <use id="my-pool[2]" href="#my-item" />
+                    <use id="my-pool[3]" href="#my-item" />
+                    <use id="my-pool[4]" href="#my-item" />
+                    <use id="my-pool[5]" href="#my-item" />
+                    <use id="my-pool[6]" href="#my-item" />
+                    <use id="my-pool[7]" href="#my-item" />
+                    <use id="my-pool[8]" href="#my-item" />
+                    <use id="my-pool[9]" href="#my-item" />
+                    <use id="my-pool[10]" href="#my-item" />
+                    <use id="my-pool[11]" href="#my-item" />
+                    <use id="my-pool[12]" href="#my-item" />
+                    <use id="my-pool[13]" href="#my-item" />
+                    <use id="my-pool[14]" href="#my-item" />
+                </use>
+            </use>
+        </g>
     </g>
 </svg>

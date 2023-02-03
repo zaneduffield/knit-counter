@@ -21,6 +21,7 @@ import {
   TimeFormat,
 } from "../common/settingsTypes";
 import { me as appbit } from "appbit";
+import { me as device } from "device";
 import clock from "clock";
 import "./padStart";
 
@@ -153,24 +154,6 @@ async function refresh() {
   redraw();
 }
 
-function setCurProject(p: Project) {}
-
-function setCurProjectId(i: number) {
-  const proj = getProject(i);
-  if (proj !== undefined) {
-    settings.projId = i;
-    project = proj;
-  } else {
-    project = undefined;
-    console.error(`unknown project ID: ${i}`);
-    console.error(
-      `known project IDs: ${JSON.stringify(
-        settings.projects.map(([id, _]) => id)
-      )}`
-    );
-  }
-}
-
 function sendMessage(o: any) {
   if (messaging.peerSocket.readyState === messaging.peerSocket.OPEN) {
     messaging.peerSocket.send(o);
@@ -183,9 +166,6 @@ function requestSoftSync() {
   sendMessage(SOFT_RESYNC_SETTINGS_MESSAGE);
 }
 
-var y = 0;
-var x = 0;
-
 function init() {
   console.log("initialising");
 
@@ -195,6 +175,7 @@ function init() {
     saveSettings();
   }
   loadSettings();
+  loadDocument();
   tryLoadProjectById(settings.projId);
 
   messaging.peerSocket.addEventListener("message", receiveMessage);
@@ -211,12 +192,11 @@ function init() {
   appbit.onunload = () => saveSettings();
 }
 
-async function tryLoadProjectById(i: number) {
+function tryLoadProjectById(i: number) {
   const proj = getProject(i);
-  if (proj === undefined) {
-    await loadProjectSelectionView();
-  } else {
-    await loadProject([i, proj]);
+  loadProject([i, proj]);
+  if (project === undefined) {
+    slideToProjectSelection();
   }
 }
 function pad2dig(n: number) {
@@ -266,13 +246,8 @@ function setupClock() {
   }
 }
 
-async function loadProject([id, proj]: [number, Project]) {
-  console.log("loading project");
-  settings.projId = id;
-  project = proj;
-
-  await document.location.replace("./resources/index.view");
-  console.log("loaded index.view");
+function loadDocument() {
+  console.log("loading document");
 
   background = document.getElementById("background");
   projectName = document.getElementById("project-name");
@@ -308,6 +283,9 @@ async function loadProject([id, proj]: [number, Project]) {
     ...plusButton.getElementsByClassName("background-fill")
   );
 
+  // @ts-ignore
+  slideGroup = document.getElementById("slide");
+
   plusButton.onclick = incrementEvent(1);
   subButton.onclick = incrementEvent(-1);
 
@@ -315,34 +293,33 @@ async function loadProject([id, proj]: [number, Project]) {
   repeatCountBubbleElm.onclick = () => selectBubble(Bubble.RepeatCount);
   repeatProgressBubbleElm.onclick = () => selectBubble(Bubble.RepeatProgress);
 
+  var mouseDownX: number;
+  var mouseDownY: number;
+
   background.onmousedown = (e) => {
     // TODO try using requestAnimationFrame() to set the slide position more smoothly
     console.log("mouse down");
-    x = e.screenX;
-    y = e.screenY;
+    mouseDownX = e.screenX;
+    mouseDownY = e.screenY;
   };
 
+  let slideThreshold = -device.screen.width * 0.4;
   background.onmouseup = async (e) => {
     console.log("mouse up");
-    let xMove = e.screenX - x;
+    let xMove = e.screenX - mouseDownX;
 
-    if (xMove < -120) {
+    if (xMove < slideThreshold) {
       /* swipe left */
       console.log("swipe left");
-      // TODO use setInterval to animate the project moving the rest of the way out of view
-      await loadProjectSelectionView();
+      slideToProjectSelection();
       return;
     }
 
-    setProjectSlide(0);
+    slideToProject();
   };
 
-  // @ts-ignore
-  slideGroup = document.getElementById("slide");
-
   background.onmousemove = async (e) => {
-    console.log("mouse move");
-    let xMove = e.screenX - x;
+    let xMove = e.screenX - mouseDownX;
     let d = Math.min(xMove, 0);
     if (Math.abs(d - lastSlidePos) > 40) {
       console.log("ignoring sudden mouse movement");
@@ -350,24 +327,75 @@ async function loadProject([id, proj]: [number, Project]) {
     }
     setProjectSlide(d);
   };
+}
 
+function loadProject([id, proj]: [number, Project]) {
+  console.log("loading project");
+  if (proj !== undefined) {
+    settings.projId = id;
+    project = proj;
+  } else {
+    project = undefined;
+  }
   redraw();
 }
 
+function slideToProject() {
+  slideToOffset(lastSlidePos, 0);
+}
+
+function slideToProjectSelection() {
+  console.log("sliding to project selection");
+  slideToOffset(lastSlidePos, -device.screen.width);
+}
+
+function slideToOffset(current_x_offset: number, target_x_offset: number) {
+  current_x_offset = current_x_offset ?? 0;
+  var dist = current_x_offset - target_x_offset;
+  var sign = target_x_offset - current_x_offset >= 0 ? 1 : -1;
+  var pixels_per_ms = sign;
+
+  const start_timestamp = Date.now();
+  var last_timestamp = start_timestamp;
+
+  const partialSlideToProjectSelect = (timestamp: number) => {
+    if (dist * sign >= 0) {
+      return;
+    }
+
+    var travel = pixels_per_ms * (timestamp - last_timestamp);
+    last_timestamp = timestamp;
+    dist += travel;
+    setProjectSlide(dist + target_x_offset);
+    requestAnimationFrame(partialSlideToProjectSelect);
+  };
+
+  requestAnimationFrame(partialSlideToProjectSelect);
+}
+
+function clamp(n: number, min: number, max: number): number {
+  return Math.max(Math.min(n, max), min);
+}
+
 function setProjectSlide(d: number) {
-  console.log(`setting proj slide to ${d}`);
+  d = clamp(d, -device.screen.width, 0);
   lastSlidePos = d;
   slideGroup.groupTransform.translate.x = d;
 }
 
-async function loadProjectSelectionView() {
-  console.log("loading project selection view");
-  await document.location.replace("./resources/settings/settings.view");
+interface ProjectListItem extends VirtualTileListItemInfo {
+  value: string;
+  index: number;
+}
 
-  let list = document.getElementById("myList");
+function redrawProjectSelectionView() {
+  console.log("redrawing project selection");
 
   // @ts-ignore
-  list.delegate = {
+  let projectSelectionList: VirtualTileList<ProjectListItem> =
+    document.getElementById("myList");
+
+  projectSelectionList.delegate = {
     getTileInfo: (index: number) => {
       return {
         type: "list-pool",
@@ -375,7 +403,7 @@ async function loadProjectSelectionView() {
         index: index,
       };
     },
-    configureTile: (tile: Element, info) => {
+    configureTile: (tile, info) => {
       const index: number = info.index;
       if (info.type == "list-pool") {
         tile.getElementById("text").text = settings.projects[index]?.[1].name;
@@ -385,25 +413,24 @@ async function loadProjectSelectionView() {
           circle.style.fill = settings.projects[index]?.[1].colour;
         }
         let touch = tile.getElementById("touch");
-        touch.onclick = () => loadProject(settings.projects[index]);
+        touch.onclick = () => {
+          loadProject(settings.projects[index]);
+          slideGroup.animate("enable");
+          lastSlidePos = 0;
+        };
       }
     },
   };
 
-  redrawSettings();
-}
-
-function redrawSettings() {
-  let list = document.getElementById("myList");
   let help = document.getElementById("no-project-help");
   if (settings.projects.length === 0) {
     help.style.display = "inline";
-    list.style.display = "none";
+    projectSelectionList.style.display = "none";
     return;
   }
 
   help.style.display = "none";
-  list.style.display = "inline";
+  projectSelectionList.style.display = "inline";
 
   const darkBgCol = "#000000";
   const lightBgCol = "#ffffff";
@@ -445,12 +472,22 @@ function redrawSettings() {
 
   // length must be set AFTER delegate
   // @ts-ignore
-  list.length = settings.projects.length;
+  projectSelectionList.length = settings.projects.length;
 }
 
 function selectBubble(b: Bubble) {
   project.selectedBubble = b;
-  redraw();
+  redrawProject();
+
+  var group: Element;
+  if (project.selectedBubble === Bubble.Global) {
+    group = document.getElementById("global-group");
+  } else if (project.selectedBubble === Bubble.RepeatProgress) {
+    group = document.getElementById("repeat-progress-group");
+  } else if (project.selectedBubble === Bubble.RepeatCount) {
+    group = document.getElementById("repeat-group");
+  }
+  group.animate("enable");
 }
 
 function incRepeatCount(i: number) {
@@ -471,21 +508,22 @@ function incrementEvent(i: number): (e: MouseEvent) => void {
     } else if (project.selectedBubble === Bubble.RepeatCount) {
       incRepeatCount(i * project.repeatLength);
     }
-    redraw();
+    redrawProject();
   };
 }
 
 function redraw() {
   console.log("starting redraw");
-  console.log(`current view: ${document.location.pathname}`);
-  if (document.location.pathname === "./resources/settings/settings.view") {
-    redrawSettings();
-  } else {
-    redrawProject();
-  }
+  redrawProjectSelectionView();
+  redrawProject();
 }
 
 function redrawProject() {
+  if (project === undefined) {
+    console.warn("not drawing project because it is undefined");
+    return;
+  }
+
   console.log(
     `redrawing project with global count ${project.globalCount} and repeat length ${project.repeatLength}`
   );
@@ -529,8 +567,6 @@ function redrawProject() {
   applicationFillElms.forEach((e) => (e.style.fill = project.colour));
   const backgroundFill = settings.isDarkMode ? "fb-black" : "fb-white";
   backgroundFillElms.forEach((e) => (e.style.fill = backgroundFill));
-
-  setProjectSlide(0);
 }
 
 function receiveProjectOperation(op: ProjectOperation) {
@@ -539,13 +575,13 @@ function receiveProjectOperation(op: ProjectOperation) {
     var proj = getProject(op.projId);
     proj.globalCount = 0;
     proj.repeatCount = 0;
-    redraw();
+    redrawProject();
   } else {
     console.warn(`ignoring unknown project operation: ${op.operation}`);
   }
 }
 
-async function receiveMessageItem(obj) {
+function receiveMessageItem(obj) {
   if (isSettingsMessage(obj)) {
     // having this in a function was causing stack overflows, so I've inline-ed it.
     var key = obj.key;
@@ -598,10 +634,9 @@ async function receiveMessageItem(obj) {
       console.log("finished receiving project settings");
       saveSettings();
 
+      redraw();
       if (getCurProject() === undefined) {
-        await loadProjectSelectionView();
-      } else {
-        redraw();
+        slideToProjectSelection();
       }
     } else if (key === "timeFormat") {
       settings.timeFormat = JSON.parse(value);
@@ -619,9 +654,9 @@ async function receiveMessageItem(obj) {
   }
 }
 
-async function receiveMessage(evt: messaging.MessageEvent) {
+function receiveMessage(evt: messaging.MessageEvent) {
   if (evt && evt.data) {
-    await receiveMessageItem(evt.data);
+    receiveMessageItem(evt.data);
   }
 }
 
