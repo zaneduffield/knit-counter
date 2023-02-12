@@ -22,6 +22,7 @@ import {
 } from "../common/settingsTypes";
 import { me as appbit } from "appbit";
 import { me as device } from "device";
+import { vibration, VibrationPatternName } from "haptics";
 import clock from "clock";
 import "./padStart";
 
@@ -471,7 +472,6 @@ function redrawProjectSelectionView() {
   }
 
   // length must be set AFTER delegate
-  // @ts-ignore
   projectSelectionList.length = settings.projects.length;
 }
 
@@ -479,20 +479,43 @@ function selectBubble(b: Bubble) {
   project.selectedBubble = b;
   redrawProject();
 
-  var group: Element;
-  if (project.selectedBubble === Bubble.Global) {
+  getBubbleGroup(project.selectedBubble).animate("enable");
+  vibration.start("confirmation");
+}
+
+function getBubbleGroup(b: Bubble): Element | undefined {
+  var group: Element | undefined = undefined;
+  if (b === Bubble.Global) {
     group = document.getElementById("global-group");
-  } else if (project.selectedBubble === Bubble.RepeatProgress) {
+  } else if (b === Bubble.RepeatProgress) {
     group = document.getElementById("repeat-progress-group");
-  } else if (project.selectedBubble === Bubble.RepeatCount) {
+  } else if (b === Bubble.RepeatCount) {
     group = document.getElementById("repeat-group");
   }
-  group.animate("enable");
+  return group;
+}
+
+function alertTargetReached(group: Element) {
+  const buzz = () => {
+    group.animate("enable");
+    vibration.start("ping");
+  };
+  setTimeout(buzz, 0);
+  setTimeout(buzz, 500);
+  setTimeout(buzz, 1000);
 }
 
 function incRepeatCount(i: number) {
   if (project.repeatLength > 0) {
     project.repeatCount = Math.max(project.repeatCount + i, 0);
+    if (
+      project.repeatGoal &&
+      i > 0 &&
+      getRepeatPos(project) === 0 &&
+      getNumRepeats(project) === project.repeatGoal
+    ) {
+      alertTargetReached(getBubbleGroup(Bubble.RepeatCount));
+    }
   } else {
     project.repeatCount = 0;
   }
@@ -518,6 +541,14 @@ function redraw() {
   redrawProject();
 }
 
+function getRepeatPos(p: Project): number {
+  return p.repeatCount % p.repeatLength;
+}
+
+function getNumRepeats(p: Project): number {
+  return Math.floor(p.repeatCount / p.repeatLength);
+}
+
 function redrawProject() {
   if (project === undefined) {
     console.warn("not drawing project because it is undefined");
@@ -529,13 +560,12 @@ function redrawProject() {
   );
   globalCounterElm.text = project.globalCount.toString();
   if (project.repeatLength > 0) {
-    var repeatPos = project.repeatCount % project.repeatLength;
-    var numRepeats = Math.floor(project.repeatCount / project.repeatLength);
+    var repeatPos = getRepeatPos(project);
+    var numRepeats = getNumRepeats(project);
 
     repeatProgressElm.text = `${repeatPos}/${project.repeatLength}`;
     repeatCountElm.text = numRepeats.toString();
     repeatProgressArc.sweepAngle = (repeatPos / project.repeatLength) * 360;
-    // TODO make the 'goal' number of repeats configurable!
     repeatCountProgressArc.sweepAngle = project.repeatGoal
       ? (numRepeats / project.repeatGoal) * 360
       : 0;
