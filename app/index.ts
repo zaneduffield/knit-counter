@@ -294,20 +294,20 @@ function loadDocument() {
   repeatCountBubbleElm.onclick = () => selectBubble(Bubble.RepeatCount);
   repeatProgressBubbleElm.onclick = () => selectBubble(Bubble.RepeatProgress);
 
-  var mouseDownX: number;
-  var mouseDownY: number;
-
-  background.onmousedown = (e) => {
-    // TODO try using requestAnimationFrame() to set the slide position more smoothly
+  var mouseDownX: number = undefined;
+  const onmousedownEvent = (e: MouseEvent) => {
     console.log("mouse down");
     mouseDownX = e.screenX;
-    mouseDownY = e.screenY;
   };
 
   let slideThreshold = -device.screen.width * 0.4;
-  background.onmouseup = async (e) => {
+  const onmouseupEvent = (e: MouseEvent) => {
     console.log("mouse up");
+    if (mouseDownX === undefined) {
+      return;
+    }
     let xMove = e.screenX - mouseDownX;
+    mouseDownX = undefined;
 
     if (xMove < slideThreshold) {
       /* swipe left */
@@ -319,15 +319,27 @@ function loadDocument() {
     slideToProject();
   };
 
-  background.onmousemove = async (e) => {
-    let xMove = e.screenX - mouseDownX;
-    let d = Math.min(xMove, 0);
-    if (Math.abs(d - lastSlidePos) > 40) {
-      console.log("ignoring sudden mouse movement");
+  const onmousemoveEvent = (e: MouseEvent) => {
+    if (mouseDownX === undefined) {
       return;
     }
+    let xMove = e.screenX - mouseDownX;
+    let d = Math.min(xMove, 0);
     setProjectSlide(d);
   };
+
+  var elms = document.getElementsByClassName("clickable");
+  for (var i = elms.length; i--; ) {
+    var elm = elms[i];
+    elm.onmousedown = onmousedownEvent;
+  }
+
+  var elms = document.getElementsByClassName("mouse-movable");
+  for (var i = elms.length; i--; ) {
+    var elm = elms[i];
+    elm.onmouseup = onmouseupEvent;
+    elm.onmousemove = onmousemoveEvent;
+  }
 }
 
 function loadProject([id, proj]: [number, Project]) {
@@ -354,7 +366,6 @@ function slideToOffset(current_x_offset: number, target_x_offset: number) {
   current_x_offset = current_x_offset ?? 0;
   var dist = current_x_offset - target_x_offset;
   var sign = target_x_offset - current_x_offset >= 0 ? 1 : -1;
-  var pixels_per_ms = sign;
 
   const start_timestamp = Date.now();
   var last_timestamp = start_timestamp;
@@ -364,7 +375,9 @@ function slideToOffset(current_x_offset: number, target_x_offset: number) {
       return;
     }
 
-    var travel = pixels_per_ms * (timestamp - last_timestamp);
+    // make sure we travel at least 1 unit to avoid getting stuck as we exponentially approach zero
+    var velocity = sign * Math.max(1, Math.abs(dist) / 100);
+    var travel = velocity * (timestamp - last_timestamp);
     last_timestamp = timestamp;
     dist += travel;
     setProjectSlide(dist + target_x_offset);
