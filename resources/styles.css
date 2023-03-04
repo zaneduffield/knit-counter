@@ -43,6 +43,14 @@ text {
   y: 12;
 }
 
+#repeat-progress-count {
+  text-anchor: end;
+}
+
+#repeat-progress-target {
+  text-anchor: start;
+}
+
 .clickable {
   pointer-events: visible;
 }

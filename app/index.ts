@@ -99,15 +99,16 @@ var plusButton: Element;
 var subButton: Element;
 
 var globalCounterElm: Element;
-var repeatProgressElm: Element;
+var repeatProgressElm: TextElement;
+var repeatTargetElm: TextElement;
 var repeatCountElm: Element;
 
-var globalBubbleElm: Element;
+var globalBubbleElm: CircleElement;
 
-var repeatProgressBubbleElm: Element;
+var repeatProgressBubbleElm: CircleElement;
 var repeatProgressArc: ArcElement;
 
-var repeatCountBubbleElm: Element;
+var repeatCountBubbleElm: CircleElement;
 var repeatCountProgressArc: ArcElement;
 
 var globalOutlineElm: Element;
@@ -247,6 +248,19 @@ function setupClock() {
   }
 }
 
+function findElementById<TagName extends keyof ElementSearchMap>(
+  elms: Array<ElementSearchMap[TagName]>,
+  id: string
+): ElementSearchMap[TagName] {
+  for (var i = elms.length; i--; ) {
+    var elm = elms[i];
+    if (elm.id === id) {
+      return elm;
+    }
+  }
+  return undefined;
+}
+
 function loadDocument() {
   console.log("loading document");
 
@@ -259,12 +273,22 @@ function loadDocument() {
   subButton = document.getElementById("sub-button");
 
   globalCounterElm = document.getElementById("global-count");
-  repeatProgressElm = document.getElementById("repeat-progress-count");
   repeatCountElm = document.getElementById("repeat-count");
 
-  globalBubbleElm = document.getElementById("global-bubble");
-  repeatProgressBubbleElm = document.getElementById("repeat-progress-bubble");
-  repeatCountBubbleElm = document.getElementById("repeat-bubble");
+  var textElms = document.getElementsByTagName("text");
+  repeatTargetElm = findElementById<"text">(textElms, "repeat-progress-target");
+  repeatProgressElm = findElementById<"text">(
+    textElms,
+    "repeat-progress-count"
+  );
+
+  var circles = document.getElementsByTagName("circle");
+  globalBubbleElm = findElementById<"circle">(circles, "global-bubble");
+  repeatProgressBubbleElm = findElementById<"circle">(
+    circles,
+    "repeat-progress-bubble"
+  );
+  repeatCountBubbleElm = findElementById<"circle">(circles, "repeat-bubble");
 
   var arcs = document.getElementsByTagName("arc");
   // TODO don't use the 'functional' JS on a low-powered device
@@ -284,8 +308,8 @@ function loadDocument() {
     ...plusButton.getElementsByClassName("background-fill")
   );
 
-  // @ts-ignore
-  slideGroup = document.getElementById("slide");
+  var groups = document.getElementsByTagName("g");
+  slideGroup = findElementById<"g">(groups, "slide");
 
   plusButton.onclick = incrementEvent(1);
   subButton.onclick = incrementEvent(-1);
@@ -576,7 +600,8 @@ function redrawProject() {
     var repeatPos = getRepeatPos(project);
     var numRepeats = getNumRepeats(project);
 
-    repeatProgressElm.text = `${repeatPos}/${project.repeatLength}`;
+    repeatProgressElm.text = `${repeatPos}`;
+    repeatTargetElm.text = `${project.repeatLength}`;
     repeatCountElm.text = numRepeats.toString();
     repeatProgressArc.sweepAngle = (repeatPos / project.repeatLength) * 360;
     repeatCountProgressArc.sweepAngle = project.repeatGoal

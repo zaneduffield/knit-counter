@@ -11,7 +11,9 @@
             <circle id="repeat-progress-buffer-bubble" r="22%" class="my-background-fill" />
             <circle id="repeat-progress-bubble" r="22%" class="mouse-movable clickable application-fill light-fill" />
             <arc id="arc-progress" x="-22%" y="-22%" width="44%" height="44%" arc-width="5" start-angle="0" sweep-angle="0" class="application-fill" />
-            <text id="repeat-progress-count" font-size="40" class="counter-text application-fill" />
+            <text id="repeat-progress-count" x="3%+1" font-size="40" class="counter-text application-fill" />
+            <text id="repeat-progress-slash" x="7%" y="5%" font-size="30" class="counter-text application-fill" >/</text>
+            <text id="repeat-progress-target" x="10%" y="5%" font-size="20" class="counter-text application-fill" />
         </g>
 
         <g id="global-group" transform="translate(75%, 18%)">
