@@ -375,6 +375,7 @@ function renderEditPage(
               SettingsPage.Reset;
             var newState = new ResetPageState();
             newState.projId = pageState.projId;
+            newState.resetVal = 0;
             typedSetting.getToUpdate().settingsState.resetPageState = newState;
             typedSetting.commit();
           }}
@@ -441,17 +442,32 @@ function renderResetPage(
     <Page>
       <Section title={<Text>Reset Project {name}</Text>}>
         <Text>
-          This will reset all counters in this project to zero; it cannot be
-          undone.
+          This will reset all counters in this project to the specified value;
+          it cannot be undone.
         </Text>
         <Text>It will only work if the watch is connected to this device.</Text>
+        <TextInput
+          label="Counter Value"
+          value={`${pageState.resetVal}`}
+          onChange={(v) => {
+            var newState =
+              typedSetting.getToUpdate().settingsState.resetPageState;
+            newState.resetVal = parseInt(
+              // @ts-ignore; I don't know why the value passed here is actually an Object and not a string.
+              v.name
+            );
+            typedSetting.commit();
+          }}
+          type="number"
+        />
         <Button
-          label="Reset"
+          label="Save"
           onClick={(e) => {
             typedSetting.update({
               projectOperation: {
                 projId: pageState.projId,
                 operation: Operation.ResetCounters,
+                data: pageState.resetVal,
               },
             });
             typedSetting.getToUpdate().settingsState.currentPage =

@@ -58,6 +58,7 @@ export class DeletePageState extends SettingsPageState {
 
 export class ResetPageState extends SettingsPageState {
   projId: number;
+  resetVal: number;
 }
 
 export class ReorderPageState extends SettingsPageState {

@@ -638,13 +638,14 @@ function redrawProject() {
 }
 
 function receiveProjectOperation(op: ProjectOperation) {
-  if (op.operation === Operation.ResetCounters) {
-    console.log(`resetting counters for project id ${op.projId} to zero`);
+  if (op && op.operation === Operation.ResetCounters) {
+    var val: number = op.data;
+    console.log(`resetting counters for project id ${op.projId} to ${val}`);
     var proj = getProject(op.projId);
-    proj.globalCount = 0;
-    proj.repeatCount = 0;
+    proj.globalCount = val;
+    proj.repeatCount = val;
     redrawProject();
-  } else {
+  } else if (op) {
     console.warn(`ignoring unknown project operation: ${op.operation}`);
   }
 }

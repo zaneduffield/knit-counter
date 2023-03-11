@@ -17,8 +17,9 @@ export enum Operation {
 export interface ProjectOperation {
   projId: number;
   operation: Operation;
+  data: any;
 }
 
 export function isProjectOperation(o: any): boolean {
-  return "projId" in o && "operation" in o;
+  return "projId" in o && "operation" in o && "data" in o;
 }
