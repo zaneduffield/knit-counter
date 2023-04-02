@@ -1,22 +1,16 @@
 import {
   Settings,
   defaultProject,
-  MainPageState,
   ProjectDetailsPageState,
   DeletePageState,
-  ReorderPageState,
-  SettingsPageState,
   SettingsPage,
   encodeSettingsState,
   decodeSettingsState,
-  SettingsState,
-  ProjectConfig,
   encodeProjectSettings,
   decodeProjectSettings,
   defaultSettingsState,
   DEFAULT_TIME_FORMAT,
   ResetPageState,
-  INIT_REPEAT_LEN,
   DEFAULT_IS_DARK_MODE,
 } from "../common/settingsTypes";
 import {

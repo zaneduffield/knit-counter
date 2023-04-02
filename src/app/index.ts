@@ -3,11 +3,9 @@ import { display } from "display";
 import * as messaging from "messaging";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import {
-  isProjectOperation,
   isSettingsMessage,
   Operation,
   ProjectOperation,
-  SettingMessage,
   SOFT_RESYNC_SETTINGS_MESSAGE,
 } from "../common/messages";
 import {
@@ -22,7 +20,7 @@ import {
 } from "../common/settingsTypes";
 import { me as appbit } from "appbit";
 import { me as device } from "device";
-import { vibration, VibrationPatternName } from "haptics";
+import { vibration } from "haptics";
 import clock from "clock";
 import "./padStart";
 
@@ -34,11 +32,6 @@ interface Project {
   repeatGoal?: number;
   colour: string;
   selectedBubble: Bubble;
-
-  circleColour?: string;
-  textColour?: string;
-  buttonMainColour?: string;
-  buttonSecondaryColour?: string;
 }
 
 function initProject(
@@ -89,7 +82,6 @@ var project: Project;
 
 const SETTINGS_FNAME = "settings.json";
 
-var background: Element;
 var projectName: Element;
 
 var lastSlidePos: number;
@@ -264,7 +256,6 @@ function findElementById<TagName extends keyof ElementSearchMap>(
 function loadDocument() {
   console.log("loading document");
 
-  background = document.getElementById("background");
   projectName = document.getElementById("project-name");
 
   setupClock();
@@ -718,8 +709,8 @@ function receiveMessageItem(obj) {
     } else {
       console.warn(`ignoring unknown settings message with key ${key}`);
     }
-  } else if (obj.projectOperation) {
-    receiveProjectOperation(obj.projectOperation);
+  } else {
+    console.warn(`Unknown message received: ${JSON.stringify(obj)}`);
   }
 }
 

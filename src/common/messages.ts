@@ -19,7 +19,3 @@ export interface ProjectOperation {
   operation: Operation;
   data: any;
 }
-
-export function isProjectOperation(o: any): boolean {
-  return "projId" in o && "operation" in o && "data" in o;
-}
