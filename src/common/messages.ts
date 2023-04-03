@@ -6,8 +6,8 @@ export interface SettingMessage {
   value: string;
 }
 
-export function isSettingsMessage(o: any): boolean {
-  return "key" in o && "value" in o;
+export function isSettingsMessage(o: any): o is SettingMessage {
+  return o !== undefined && "key" in o && "value" in o;
 }
 
 export enum Operation {
