@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Position of the project name and the repeat bubbles to
+  allow more room for the project name without being cut off
+  by the edge of the screen.
+
 ### Fixed
 
 - Race condition for loading setting on display turning on.
