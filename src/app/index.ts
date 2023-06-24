@@ -176,9 +176,7 @@ function init() {
   messaging.peerSocket.addEventListener("open", requestSoftSync);
 
   display.addEventListener("change", () => {
-    if (display.on) {
-      refresh();
-    } else {
+    if (!display.on) {
       saveSettings();
     }
   });
