@@ -103,12 +103,12 @@ var repeatProgressArc: ArcElement;
 var repeatCountBubbleElm: CircleElement;
 var repeatCountProgressArc: ArcElement;
 
-var globalOutlineElm: Element;
-var repeatProgressOutlineElm: Element;
-var repeatCountOutlineElm: Element;
+var globalOutlineElm: GraphicsElement;
+var repeatProgressOutlineElm: GraphicsElement;
+var repeatCountOutlineElm: GraphicsElement;
 
-var applicationFillElms: Element[];
-var backgroundFillElms: Element[];
+var applicationFillElms: GraphicsElement[];
+var backgroundFillElms: GraphicsElement[];
 
 function stringifySettings(settings: Settings): string {
   return JSON.stringify(settings);
@@ -195,7 +195,8 @@ function pad2dig(n: number) {
   return n.toString().padStart(2, "0");
 }
 
-function getTimeElement(): Element {
+function getTimeElement(): GraphicsElement {
+  // @ts-ignore
   return document.getElementById("time");
 }
 
@@ -236,6 +237,21 @@ function setupClock() {
     elm.style.display = "none";
     clock.ontick = undefined;
   }
+}
+
+function findElementsByClassName<TagName extends keyof ElementSearchMap>(
+  tagName: TagName,
+  className: string
+): ElementSearchMap[TagName][] {
+  const elms = document.getElementsByTagName(tagName);
+  const out: ElementSearchMap[TagName][] = [];
+  for (var i = elms.length; i--; ) {
+    var elm = elms[i];
+    if (elm.class === className) {
+      out.push(elm);
+    }
+  }
+  return out;
 }
 
 function findElementById<TagName extends keyof ElementSearchMap>(
@@ -284,16 +300,22 @@ function loadDocument() {
   repeatCountProgressArc = arcs.filter((a) => a.id === "arc-count")[0];
   repeatProgressArc = arcs.filter((a) => a.id === "arc-progress")[0];
 
+  // @ts-ignore
   globalOutlineElm = document.getElementById("outline-global-bubble");
+  // @ts-ignore
   repeatProgressOutlineElm = document.getElementById(
     "outline-repeat-progress-bubble"
   );
+  // @ts-ignore
   repeatCountOutlineElm = document.getElementById("outline-repeat-bubble");
 
+  // @ts-ignore
   applicationFillElms = document.getElementsByClassName("application-fill");
 
+  // @ts-ignore
   backgroundFillElms = document.getElementsByClassName("my-background-fill");
   backgroundFillElms.push(
+    // @ts-ignore
     ...plusButton.getElementsByClassName("background-fill")
   );
 
@@ -449,7 +471,8 @@ function redrawProjectSelectionView() {
     },
   };
 
-  let help = document.getElementById("no-project-help");
+  // @ts-ignore
+  let help: GraphicsElement = document.getElementById("no-project-help");
   if (settings.projects.length === 0) {
     help.style.display = "inline";
     projectSelectionList.style.display = "none";
@@ -475,23 +498,30 @@ function redrawProjectSelectionView() {
     : secondaryLightTileCol;
   const textCol = settings.isDarkMode ? lightTileCol : darkTileCol;
 
-  var elms: Element[];
+  // The only way to go without all the following ts-ignore comments would be
+  // to call getElementsByTag and then filter by classname for all of the
+  // tag types that inherit from 'Styled'. This would be too inefficient.
+  var elms: GraphicsElement[];
 
+  // @ts-ignore
   elms = document.getElementsByClassName("my-background-fill");
   for (let i = elms.length; i--; ) {
     elms[i].style.fill = bgCol;
   }
 
+  // @ts-ignore
   elms = document.getElementsByClassName("tile-fill");
   for (let i = elms.length; i--; ) {
     elms[i].style.fill = tileCol;
   }
 
+  // @ts-ignore
   elms = document.getElementsByClassName("secondary-tile-fill");
   for (let i = elms.length; i--; ) {
     elms[i].style.fill = secondaryTileCol;
   }
 
+  // @ts-ignore
   elms = document.getElementsByClassName("text-fill");
   for (let i = elms.length; i--; ) {
     elms[i].style.fill = textCol;
